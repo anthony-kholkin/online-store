@@ -6,7 +6,7 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from loguru import logger
 from pydantic import ValidationError
 from starlette.responses import JSONResponse, Response
-from fastapi import Depends, Cookie
+from fastapi import Depends, Cookie, Query, Path
 
 from core.config import settings
 from core.constants import RETAIL_PRICE_TYPE
@@ -34,6 +34,19 @@ class AuthService:
         self._outlet_repository = outlet_repository
         self._outlet_service = outlet_service
         self._serializer = URLSafeTimedSerializer(settings().AUTH_SECRET)
+
+    async def _load_and_verify_token(self, token: str | None) -> list[OutletSchema]:
+        if not token:
+            raise no_auth_exception
+
+        try:
+            self._serializer.loads(token, salt=settings().AUTH_SALT, max_age=settings().TOKEN_EXPIRATION_TIME)
+        except SignatureExpired:
+            raise expired_token_exception
+        except BadSignature:
+            raise no_auth_exception
+
+        return await self._outlet_service.get_all_by_token(token=token)
 
     async def create_token(self, data: LoginSchema) -> Response:
         async with aiohttp.ClientSession() as session:
@@ -78,30 +91,18 @@ class AuthService:
 
         return json_response
 
-    async def verify_token(
+    async def verify_token_outlets(
         self,
-        token: str | None,
-        cart_outlet_guid: str | None = None,
-        price_type_guid: str | None = None,
-    ) -> list[OutletSchema] | OutletSchema | None:
-        """
-        Универсальная проверка токена и сопоставление
-        с дополнительными параметрами (cart_outlet_guid или price_type_guid).
-        """
-        if price_type_guid == RETAIL_PRICE_TYPE:
-            return None
+        token: str | None = Cookie(default=None),
+    ) -> list[OutletSchema]:
+        return await self._load_and_verify_token(token=token)
 
-        if not token:
-            raise no_auth_exception
-
-        try:
-            self._serializer.loads(token, salt=settings().AUTH_SALT, max_age=settings().TOKEN_EXPIRATION_TIME)
-        except SignatureExpired:
-            raise expired_token_exception
-        except BadSignature:
-            raise no_auth_exception
-
-        outlets = await self._outlet_service.get_all_by_token(token=token)
+    async def verify_token_cart(
+        self,
+        token: str | None = Cookie(default=None),
+        cart_outlet_guid: str = Path(...),
+    ) -> OutletSchema | list[OutletSchema]:
+        outlets = await self._load_and_verify_token(token=token)
 
         if cart_outlet_guid:
             outlet = next((o for o in outlets if o.guid == cart_outlet_guid), None)
@@ -109,14 +110,20 @@ class AuthService:
                 raise access_denied_exception
             return outlet
 
-        if price_type_guid:
-            if price_type_guid != RETAIL_PRICE_TYPE and not any(
-                outlet.price_type_guid == price_type_guid for outlet in outlets
-            ):
-                raise access_denied_exception
-            return None
-
         return outlets
+
+    async def verify_token_goods(
+        self, price_type_guid: str = Query(...), token: str | None = Cookie(default=None)
+    ) -> None:
+        if price_type_guid == RETAIL_PRICE_TYPE:
+            return
+
+        outlets = await self._load_and_verify_token(token=token)
+
+        if price_type_guid != RETAIL_PRICE_TYPE and not any(
+            outlet.price_type_guid == price_type_guid for outlet in outlets
+        ):
+            raise access_denied_exception
 
 
 def get_auth_service(
@@ -126,15 +133,24 @@ def get_auth_service(
     return AuthService(outlet_repository=outlet_repository, outlet_service=outlet_service)
 
 
-async def verify_token(
+async def verify_token_outlets(
     token: str = Cookie(None, include_in_schema=False),
     auth_service: AuthService = Depends(get_auth_service),
-    cart_outlet_guid: str | None = None,
-    price_type_guid: str | None = None,
 ) -> list[OutletSchema] | OutletSchema | None:
-    """
-    Универсальная зависимость для проверки токена с дополнительными параметрами.
-    """
-    return await auth_service.verify_token(
-        token=token, cart_outlet_guid=cart_outlet_guid, price_type_guid=price_type_guid
-    )
+    return await auth_service.verify_token_outlets(token=token)
+
+
+async def verify_token_cart(
+    token: str = Cookie(None, include_in_schema=False),
+    auth_service: AuthService = Depends(get_auth_service),
+    cart_outlet_guid: str = Path(...),
+) -> list[OutletSchema] | OutletSchema | None:
+    return await auth_service.verify_token_cart(token=token, cart_outlet_guid=cart_outlet_guid)
+
+
+async def verify_token_goods(
+    auth_service: AuthService = Depends(get_auth_service),
+    price_type_guid: str = Query(default=RETAIL_PRICE_TYPE),
+    token: str | None = Cookie(default=None, include_in_schema=False),
+) -> None:
+    return await auth_service.verify_token_goods(price_type_guid=price_type_guid, token=token)

@@ -10,9 +10,7 @@ class CartGoodRepository(BaseDatabaseRepository):
         query = insert(cart_goods).values(**data.model_dump())
         await self._session.execute(query)
 
-    async def delete_good(
-        self, cart_outlet_guid: str, good_guid: str, specification_guid: str
-    ) -> None:
+    async def delete_good(self, cart_outlet_guid: str, good_guid: str, specification_guid: str) -> None:
         query = delete(cart_goods).where(
             cart_goods.c.cart_outlet_guid == cart_outlet_guid,
             cart_goods.c.good_guid == good_guid,

@@ -5,13 +5,13 @@ from schemas.good import (
     GoodPageSchema,
     GoodWithPropertiesGetSchema,
 )
-from services.auth import verify_token
+from services.auth import verify_token_goods
 from services.web.good import GoodService
 
 router = APIRouter(prefix="/goods", tags=["Товары"])
 
 
-@router.get("", status_code=status.HTTP_200_OK, dependencies=[Security(verify_token)])
+@router.get("", status_code=status.HTTP_200_OK, dependencies=[Security(verify_token_goods)])
 async def get_goods_by_filter(
     good_service: GoodService = Depends(),
     price_type_guid: str = Query(default=RETAIL_PRICE_TYPE),
@@ -33,7 +33,7 @@ async def get_goods_by_filter(
     "/{guid}",
     status_code=status.HTTP_200_OK,
     response_model=GoodWithPropertiesGetSchema,
-    dependencies=[Security(verify_token)],
+    dependencies=[Security(verify_token_goods)],
 )
 async def get_good_by_id(
     guid: str,

@@ -5,13 +5,15 @@ from core.exceptions import (
     cart_not_found_exception,
     no_good_exception,
     good_not_found_exception,
-    no_cart_goods_exception, good_in_good_not_found_exception,
+    no_cart_goods_exception,
+    good_in_good_not_found_exception,
 )
 from db.models import Cart
 from db.repositories.cart import CartRepository
 from db.repositories.cart_good import CartGoodRepository
 from db.session import get_session
 from schemas.cart import AddOrUpdateGoodToCartSchema, GetCartSchema, CartGoodSchema, GetCartGoodSchema, DeleteGoodSchema
+from schemas.outlet import OutletSchema
 from services.lc.price_type import PriceTypeService
 from services.lc.specification import SpecificationService
 from services.web.good import GoodService
@@ -38,7 +40,9 @@ class CartService:
         self._price_type_service = price_type_service
         self._specification_service = specification_service
 
-    async def add_good(self, cart_outlet_guid: str, data: AddOrUpdateGoodToCartSchema) -> Cart:
+    async def add_good(
+        self, cart_outlet_guid: str, data: AddOrUpdateGoodToCartSchema, outlets: list[OutletSchema]
+    ) -> Cart:
         good = await self._good_service.get_by_guid(guid=data.good_guid)
         await self._specification_service.get_by_guid(guid=data.specification_guid)
 
@@ -70,9 +74,7 @@ class CartService:
 
         return cart
 
-    async def delete_good(
-        self, cart_outlet_guid: str, good_guid: str, specification_guid: str
-    ) -> DeleteGoodSchema:
+    async def delete_good(self, cart_outlet_guid: str, good_guid: str, specification_guid: str) -> DeleteGoodSchema:
         cart_good = await self._cart_good_repository.get_by_guid(
             cart_outlet_guid=cart_outlet_guid,
             good_guid=good_guid,
