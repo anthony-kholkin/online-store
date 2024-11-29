@@ -1,0 +1,76 @@
+version: '3.3'
+
+services:
+  db:
+    image: postgres:16
+    container_name: db
+    restart: always
+    environment:
+      POSTGRES_USER: two_captains_store
+      POSTGRES_PASSWORD: Kosw0yhrv+238Pzs
+      POSTGRES_DB: store
+      TZ: Europe/Moscow
+    ports:
+      - "6725:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+  minio:
+    image: bitnami/minio:latest
+    restart: on-failure
+    environment:
+      - MINIO_ROOT_USER=store-app
+      - MINIO_ROOT_PASSWORD=store-app
+      - MINIO_DEFAULT_BUCKETS=store-app
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  redis:
+    image: redis/redis-stack:latest
+    restart: on-failure
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: redis-cli ping
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  api:
+    build:
+      context: .
+      dockerfile: src/Dockerfile
+    container_name: api
+    working_dir: /usr/src/app/src
+    restart: on-failure
+    env_file:
+      - ./src/core/.env
+    depends_on:
+      - db
+      - minio
+      - redis
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+
+  nginx:
+    build: ./nginx/dev
+    restart: on-failure
+    container_name: nginx
+    ports:
+      - "8081:8081"
+      - "8082:8082"
+      - "8083:8083"
+    depends_on:
+      - minio
+      - api
+
+volumes:
+  postgres_data:
+  minio_data:
