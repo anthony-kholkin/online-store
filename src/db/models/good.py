@@ -30,10 +30,11 @@ class Good(BaseModel, GUIDMixin):
         "GoodGroup",
         back_populates="goods",
         foreign_keys="Good.good_group_guid",
+        lazy = "selectin"
     )
 
     specifications: Mapped[list["Specification"]] = relationship(  # type: ignore # noqa: F821
-        "Specification", secondary=good_specifications, back_populates="goods"
+        "Specification", secondary=good_specifications, back_populates="goods", lazy="selectin"
     )
 
     storages: Mapped[list["GoodStorage"]] = relationship(  # type: ignore # noqa: F821
