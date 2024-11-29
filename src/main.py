@@ -14,6 +14,7 @@ app = FastAPI(
     title="Online Store",
     openapi_url="/api/openapi.json",
     docs_url="/api/swagger",
+    version="0.9.0"
 )
 
 add_pagination(app)
