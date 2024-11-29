@@ -88,6 +88,9 @@ class AuthService:
         Универсальная проверка токена и сопоставление
         с дополнительными параметрами (cart_outlet_guid или price_type_guid).
         """
+        if price_type_guid == RETAIL_PRICE_TYPE:
+            return None
+
         if not token:
             raise no_auth_exception
 
