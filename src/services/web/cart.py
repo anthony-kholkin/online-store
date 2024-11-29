@@ -5,7 +5,7 @@ from core.exceptions import (
     cart_not_found_exception,
     no_good_exception,
     good_not_found_exception,
-    no_cart_goods_exception,
+    no_cart_goods_exception, good_in_good_not_found_exception,
 )
 from db.models import Cart
 from db.repositories.cart import CartRepository
@@ -71,13 +71,21 @@ class CartService:
         return cart
 
     async def delete_good(
-        self, cart_outlet_guid: str, good_guid: str, specification_guid: str, price_type_guid: str
+        self, cart_outlet_guid: str, good_guid: str, specification_guid: str
     ) -> DeleteGoodSchema:
+        cart_good = await self._cart_good_repository.get_by_guid(
+            cart_outlet_guid=cart_outlet_guid,
+            good_guid=good_guid,
+            specification_guid=specification_guid,
+        )
+
+        if not cart_good:
+            raise good_in_good_not_found_exception
+
         await self._cart_good_repository.delete_good(
             cart_outlet_guid=cart_outlet_guid,
             good_guid=good_guid,
             specification_guid=specification_guid,
-            price_type_guid=price_type_guid,
         )
         await self._session.commit()
 
@@ -85,7 +93,6 @@ class CartService:
             cart_outlet_guid=cart_outlet_guid,
             good_guid=good_guid,
             specification_guid=specification_guid,
-            price_type_guid=price_type_guid,
         )
 
     async def update_good_count_in_cart(

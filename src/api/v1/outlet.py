@@ -55,14 +55,12 @@ async def delete_good_from_cart(
     cart_outlet_guid: str = Path(),
     good_guid: str = Query(),
     specification_guid: str = Query(),
-    price_type_guid: str = Query(),
     cart_service: CartService = Depends(),
 ) -> DeleteGoodSchema:
     return await cart_service.delete_good(
         cart_outlet_guid=cart_outlet_guid,
         good_guid=good_guid,
         specification_guid=specification_guid,
-        price_type_guid=price_type_guid,
     )
 
 

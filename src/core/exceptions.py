@@ -16,6 +16,11 @@ good_not_found_exception = HTTPException(
     detail="Товар не найден",
 )
 
+good_in_good_not_found_exception = HTTPException(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    detail="Нельзя удалить товар, которого нет в корзине.",
+)
+
 property_not_found_exception = HTTPException(
     status_code=status.HTTP_404_NOT_FOUND,
     detail="Свойство не найдено",

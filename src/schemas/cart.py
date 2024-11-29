@@ -49,4 +49,3 @@ class CartGoodSchema(BaseOrmSchema):
 class DeleteGoodSchema(GetBaseCartSchema):
     good_guid: str
     specification_guid: str
-    price_type_guid: str
