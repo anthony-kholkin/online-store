@@ -1,7 +1,8 @@
 from typing import Sequence
 
-from sqlalchemy import select, Select, or_, func, between
+from sqlalchemy import select, Select, or_, func
 
+from core.exceptions import no_price_type_guid_exception
 from db.models import Good, GoodStorage, Price
 from db.repositories.base import BaseDatabaseRepository
 from schemas.good import GoodCreateSchema
@@ -44,20 +45,24 @@ class GoodRepository(BaseDatabaseRepository):
 
     @staticmethod
     def filter_by_price(
-        query: Select[tuple[Good]], price_from: float | None, price_to: float | None
+        query: Select[tuple[Good]],
+        price_from: float | None,
+        price_to: float | None,
+        price_type_guid: str | None,
     ) -> Select[tuple[Good]]:
-        filtered_query = query
+        if not price_type_guid:
+            raise no_price_type_guid_exception
 
-        if price_from and not price_to:
-            filtered_query = query.join(Good.prices).filter(Price.value >= price_from)
-        elif not price_from and price_to:
-            filtered_query = query.join(Good.prices).filter(Price.value <= price_to)
-        elif price_from and price_to:
-            filtered_query = query.join(Good.prices).filter(
-                between(expr=Price.value, lower_bound=price_from, upper_bound=price_to)
-            )
+        subquery = select(Price.good_guid).filter(Price.price_type_guid == price_type_guid)
 
-        return filtered_query
+        if price_from is not None:
+            subquery = subquery.filter(Price.value >= price_from)
+        if price_to is not None:
+            subquery = subquery.filter(Price.value <= price_to)
+
+        res_subquery = subquery.distinct().subquery()
+
+        return query.filter(Good.guid.in_(select(res_subquery.c.good_guid)))
 
     async def get_by_filters(
         self,
@@ -65,6 +70,7 @@ class GoodRepository(BaseDatabaseRepository):
         size: int,
         in_stock: bool | None = None,
         name: str | None = None,
+        price_type_guid: str | None = None,
         price_from: float | None = None,
         price_to: float | None = None,
     ) -> tuple[Sequence[Good], int]:
@@ -75,7 +81,9 @@ class GoodRepository(BaseDatabaseRepository):
         if name is not None:
             query = self.filter_by_name(query=query, name=name)
 
-        query = self.filter_by_price(query=query, price_from=price_from, price_to=price_to)
+        query = self.filter_by_price(
+            query=query, price_from=price_from, price_to=price_to, price_type_guid=price_type_guid
+        )
 
         count = await self._session.scalar(select(func.count()).select_from(query.subquery()))
         count = count if count else 0

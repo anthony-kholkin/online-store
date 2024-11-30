@@ -27,10 +27,7 @@ class Good(BaseModel, GUIDMixin):
     good_group_guid: Mapped[str] = mapped_column(String(255), ForeignKey("good_groups.guid"), nullable=False)
 
     good_group: Mapped["GoodGroup"] = relationship(  # type: ignore # noqa: F821
-        "GoodGroup",
-        back_populates="goods",
-        foreign_keys="Good.good_group_guid",
-        lazy = "selectin"
+        "GoodGroup", back_populates="goods", foreign_keys="Good.good_group_guid", lazy="selectin"
     )
 
     specifications: Mapped[list["Specification"]] = relationship(  # type: ignore # noqa: F821

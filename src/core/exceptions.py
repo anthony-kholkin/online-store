@@ -115,3 +115,8 @@ no_cart_goods_exception = HTTPException(
     status_code=status.HTTP_400_BAD_REQUEST,
     detail="Нельзя обновить количество товара, которого нет в корзине.",
 )
+
+no_price_type_guid_exception = HTTPException(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    detail="Нельзя отфильтровать товары по цене без указания `price_type_guid`.",
+)

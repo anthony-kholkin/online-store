@@ -15,6 +15,8 @@ router = APIRouter(prefix="/goods", tags=["Товары"])
 async def get_goods_by_filter(
     good_service: GoodService = Depends(),
     price_type_guid: str = Query(default=RETAIL_PRICE_TYPE),
+    price_from: float | None = Query(default=None),
+    price_to: float | None = Query(default=None),
     page: int = Query(ge=1, default=1),
     size: int = Query(ge=1, le=100, default=20),
     in_stock: bool | None = Query(default=None),
@@ -22,6 +24,8 @@ async def get_goods_by_filter(
 ) -> GoodPageSchema:
     return await good_service.get_by_filters(
         price_type_guid=price_type_guid,
+        price_from=price_from,
+        price_to=price_to,
         page=page,
         size=size,
         in_stock=in_stock,
