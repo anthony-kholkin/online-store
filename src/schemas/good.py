@@ -65,15 +65,24 @@ class GoodPropertyGetSchema(BaseModel):
     value: str = ""
 
 
+class SpecificationWithPriceAndStorageSchema(BaseModel):
+    good_guid: str
+    specification_guid: str
+    in_stock: int
+    specification_name: str
+    price: float
+
+
 class GoodWithPropertiesGetSchema(BaseOrmSchema):
     guid: str
     name: str
     good_group_guid: str
     image_key: str | None
 
-    description: str = ""
+    description: str | None
     type: GoodTypesEnum = GoodTypesEnum.REGULAR
 
     properties: list[GoodPropertyGetSchema]
-    storages: list[GoodStorageGetSchema]
-    prices: list[PriceGetSchema]
+    specification: list[SpecificationWithPriceAndStorageSchema]
+    # storages: list[GoodStorageGetSchema]
+    # prices: list[PriceGetSchema]

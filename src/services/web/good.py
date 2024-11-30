@@ -14,8 +14,8 @@ from schemas.good import (
     GoodPageSchema,
     GoodWithPropertiesGetSchema,
     GoodPropertyGetSchema,
+    SpecificationWithPriceAndStorageSchema,
 )
-from schemas.good_storage import GoodStorageGetSchema
 from schemas.price import PriceGetSchema
 from schemas.specification import SpecificationSchema
 from services.base.good import BaseGoodService
@@ -60,30 +60,18 @@ class GoodService(BaseGoodService):
             if getattr(good, name)
         ]
 
-        storages: list[GoodStorageGetSchema] = []
-
-        for storage in good.storages:
-            storages.append(
-                GoodStorageGetSchema(
-                    good_guid=good.guid,
-                    specification_guid=storage.specification_guid,
-                    in_stock=storage.in_stock,
-                    specification_name=storage.specification.name,
-                )
+        specifications = [
+            SpecificationWithPriceAndStorageSchema(
+                good_guid=good.guid,
+                specification_guid=storage.specification_guid,
+                in_stock=storage.in_stock,
+                specification_name=storage.specification.name,
+                price=price.value,
             )
-
-        prices = [
-            PriceGetSchema(
-                good_guid=price.good_guid,
-                specification=SpecificationSchema(
-                    guid=price.specification_guid,
-                    name=price.specification.name,
-                ),
-                price_type=price.price_type,
-                value=price.value,
-            )
+            for storage in good.storages
+            if storage.in_stock > 0
             for price in good.prices
-            if price.price_type_guid == price_type_guid
+            if price.specification_guid == storage.specification_guid and price.price_type_guid == price_type_guid
         ]
 
         return GoodWithPropertiesGetSchema(
@@ -94,8 +82,7 @@ class GoodService(BaseGoodService):
             type=good.type,
             image_key=image_key,
             properties=property_schemas,
-            storages=storages,
-            prices=prices,
+            specification=specifications,
         )
 
     async def get_by_filters(
