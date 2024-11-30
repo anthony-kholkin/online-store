@@ -175,3 +175,22 @@ class CartService:
             total_cost += row.price * row.quantity
 
         return GetCartSchema(cart_outlet_guid=cart_outlet_guid, goods=goods, total_cost=total_cost)
+
+    async def get_good_quantity_in_cart(
+        self, cart_outlet_guid: str, good_guid: str, specification_guid: str
+    ) -> CartGoodSchema:
+        cart_good = await self._cart_good_repository.get_by_guid(
+            cart_outlet_guid=cart_outlet_guid,
+            good_guid=good_guid,
+            specification_guid=specification_guid
+        )
+
+        return CartGoodSchema(
+            cart_outlet_guid=cart_outlet_guid,
+            good_guid=good_guid,
+            specification_guid=specification_guid,
+            price_type_guid=cart_good.price_type_guid,
+            quantity=cart_good.quantity
+        )
+
+

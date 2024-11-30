@@ -31,6 +31,23 @@ async def get_cart_by_outlet_guid(
     return await cart_service.get_cart(cart_outlet_guid=cart_outlet_guid)
 
 
+@router.get(
+    "/{cart_outlet_guid}/cart/good",
+    status_code=status.HTTP_200_OK,
+    response_model=CartGoodSchema,
+    dependencies=[Security(verify_token_outlets)],
+)
+async def get_cart_by_outlet_guid(
+    cart_outlet_guid: str = Path(...),
+    good_guid: str = Query(...),
+    specification_guid: str = Query(...),
+    cart_service: CartService = Depends(),
+) -> CartGoodSchema:
+    return await cart_service.get_good_quantity_in_cart(cart_outlet_guid=cart_outlet_guid,
+                                                        good_guid=good_guid,
+                                                        specification_guid=specification_guid)
+
+
 @router.post(
     "/{cart_outlet_guid}/cart",
     status_code=status.HTTP_200_OK,
