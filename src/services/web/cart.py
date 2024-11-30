@@ -180,9 +180,7 @@ class CartService:
         self, cart_outlet_guid: str, good_guid: str, specification_guid: str
     ) -> CartGoodSchema:
         cart_good = await self._cart_good_repository.get_by_guid(
-            cart_outlet_guid=cart_outlet_guid,
-            good_guid=good_guid,
-            specification_guid=specification_guid
+            cart_outlet_guid=cart_outlet_guid, good_guid=good_guid, specification_guid=specification_guid
         )
 
         return CartGoodSchema(
@@ -190,7 +188,5 @@ class CartService:
             good_guid=good_guid,
             specification_guid=specification_guid,
             price_type_guid=cart_good.price_type_guid,
-            quantity=cart_good.quantity
+            quantity=cart_good.quantity,
         )
-
-
