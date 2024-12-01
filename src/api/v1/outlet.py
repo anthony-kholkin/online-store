@@ -1,7 +1,14 @@
 from fastapi import APIRouter, status, Security, Depends, Path, Query
 
 from db.models import Cart
-from schemas.cart import GetCartSchema, AddOrUpdateGoodToCartSchema, GetBaseCartSchema, CartGoodSchema, DeleteGoodSchema
+from schemas.cart import (
+    GetCartSchema,
+    AddOrUpdateGoodToCartSchema,
+    GetBaseCartSchema,
+    CartGoodSchema,
+    DeleteGoodSchema,
+    LightCartGoodSchema,
+)
 from schemas.outlet import OutletSchema
 from services.auth import verify_token_outlets
 from services.web.cart import CartService
@@ -34,7 +41,7 @@ async def get_cart_by_outlet_guid(
 @router.get(
     "/{cart_outlet_guid}/cart/good",
     status_code=status.HTTP_200_OK,
-    response_model=CartGoodSchema,
+    response_model=LightCartGoodSchema,
     dependencies=[Security(verify_token_outlets)],
 )
 async def get_cart_good_by_outlet_guid(
@@ -42,7 +49,7 @@ async def get_cart_good_by_outlet_guid(
     good_guid: str = Query(...),
     specification_guid: str = Query(...),
     cart_service: CartService = Depends(),
-) -> CartGoodSchema:
+) -> LightCartGoodSchema:
     return await cart_service.get_good_quantity_in_cart(
         cart_outlet_guid=cart_outlet_guid, good_guid=good_guid, specification_guid=specification_guid
     )

@@ -15,7 +15,10 @@ class CartRepository(BaseDatabaseRepository):
 
         return cart
 
-    async def get_cart_by_outlet_guid(self, cart_outlet_guid: str) -> Cart | None:
+    async def get_cart_by_cart_outlet_guid(self, cart_outlet_guid: str) -> Cart | None:
+        return await self._session.get(Cart, cart_outlet_guid)
+
+    async def get_cart_by_cart_outlet_guid_with_cart_goods(self, cart_outlet_guid: str) -> Cart | None:
         query = (
             select(Cart, cart_goods)
             .join(cart_goods, Cart.cart_outlet_guid == cart_goods.c.cart_outlet_guid)

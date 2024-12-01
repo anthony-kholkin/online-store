@@ -12,7 +12,14 @@ from db.models import Cart
 from db.repositories.cart import CartRepository
 from db.repositories.cart_good import CartGoodRepository
 from db.session import get_session
-from schemas.cart import AddOrUpdateGoodToCartSchema, GetCartSchema, CartGoodSchema, GetCartGoodSchema, DeleteGoodSchema
+from schemas.cart import (
+    AddOrUpdateGoodToCartSchema,
+    GetCartSchema,
+    CartGoodSchema,
+    GetCartGoodSchema,
+    DeleteGoodSchema,
+    LightCartGoodSchema,
+)
 from schemas.outlet import OutletSchema
 from services.lc.price_type import PriceTypeService
 from services.lc.specification import SpecificationService
@@ -62,7 +69,7 @@ class CartService:
             if storage.specification_guid == data.specification_guid and storage.in_stock < data.quantity:
                 raise no_good_exception
 
-        cart = await self._cart_repository.get_cart_by_outlet_guid(cart_outlet_guid=cart_outlet_guid)
+        cart = await self._cart_repository.get_cart_by_cart_outlet_guid(cart_outlet_guid=cart_outlet_guid)
 
         if not cart:
             cart = await self._cart_repository.create(cart_outlet_guid=cart_outlet_guid)
@@ -119,9 +126,8 @@ class CartService:
             if storage.specification_guid == data.specification_guid and storage.in_stock < data.quantity:
                 raise no_good_exception
 
-        await self._cart_repository.get_cart_by_outlet_guid(cart_outlet_guid=cart_outlet_guid)
-        cart_good = await self._cart_good_repository.get_by_guid(
-            cart_outlet_guid=cart_outlet_guid, good_guid=data.good_guid, specification_guid=data.specification_guid
+        cart_good = await self._cart_repository.get_cart_by_cart_outlet_guid_with_cart_goods(
+            cart_outlet_guid=cart_outlet_guid
         )
 
         if not cart_good:
@@ -178,18 +184,14 @@ class CartService:
 
     async def get_good_quantity_in_cart(
         self, cart_outlet_guid: str, good_guid: str, specification_guid: str
-    ) -> CartGoodSchema:
+    ) -> LightCartGoodSchema:
         cart_good = await self._cart_good_repository.get_by_guid(
             cart_outlet_guid=cart_outlet_guid, good_guid=good_guid, specification_guid=specification_guid
         )
 
-        if not cart_good:
-            raise no_cart_goods_exception
-
-        return CartGoodSchema(
+        return LightCartGoodSchema(
             cart_outlet_guid=cart_outlet_guid,
             good_guid=good_guid,
             specification_guid=specification_guid,
-            price_type_guid=cart_good.price_type_guid,
-            quantity=cart_good.quantity,
+            quantity=cart_good.quantity if cart_good else 0,
         )
