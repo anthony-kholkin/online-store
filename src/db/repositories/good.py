@@ -100,6 +100,7 @@ class GoodRepository(BaseDatabaseRepository):
             ).label("is_favorite"),
         )
 
+
         if in_stock is not None:
             query = self.filter_by_in_stock(query=query, in_stock=in_stock)
         if name is not None:
