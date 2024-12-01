@@ -39,6 +39,7 @@ class GoodCardGetSchema(BaseOrmSchema):
     type: GoodTypesEnum = GoodTypesEnum.REGULAR
     image_key: str | None
     prices: list[PriceGetSchema]
+    is_favorite: bool = False
 
 
 class GoodWithSpecsGetSchema(GoodGetSchema):
@@ -78,11 +79,10 @@ class GoodWithPropertiesGetSchema(BaseOrmSchema):
     name: str
     good_group_guid: str
     image_key: str | None
+    is_favorite: bool = False
 
     description: str | None
     type: GoodTypesEnum = GoodTypesEnum.REGULAR
 
     properties: list[GoodPropertyGetSchema]
     specification: list[SpecificationWithPriceAndStorageSchema]
-    # storages: list[GoodStorageGetSchema]
-    # prices: list[PriceGetSchema]

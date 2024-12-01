@@ -10,6 +10,7 @@ from core.exceptions import (
 from db.models import Cart
 from db.repositories.cart import CartRepository
 from db.repositories.cart_good import CartGoodRepository
+from db.repositories.good import GoodRepository
 from db.session import get_session
 from schemas.cart import (
     AddOrUpdateGoodToCartSchema,
@@ -32,6 +33,7 @@ class CartService:
         session: AsyncSession = Depends(get_session),
         storage: S3Storage = Depends(),
         cart_repository: CartRepository = Depends(),
+        good_repository: GoodRepository = Depends(),
         cart_good_repository: CartGoodRepository = Depends(),
         good_service: GoodService = Depends(),
         price_type_service: PriceTypeService = Depends(),
@@ -41,6 +43,7 @@ class CartService:
         self._s3_storage = storage
 
         self._cart_repository = cart_repository
+        self._good_repository = good_repository
         self._cart_good_repository = cart_good_repository
         self._good_service = good_service
         self._price_type_service = price_type_service
@@ -165,6 +168,12 @@ class CartService:
             if image_key is None:
                 image_key = await self._s3_storage.generate_presigned_url(key="image not found.png")
 
+            is_favorite = False
+            if cart_outlet_guid:
+                is_favorite = await self._good_repository.is_favorite(
+                    cart_outlet_guid=cart_outlet_guid, good_guid=row.guid
+                )
+
             goods.append(
                 GetCartGoodSchema(
                     guid=row.guid,
@@ -172,7 +181,7 @@ class CartService:
                     price_type_guid=row.price_type_guid,
                     name=row.name,
                     image_key=image_key,
-                    is_favorite=False,
+                    is_favorite=is_favorite,
                     quantity=row.quantity,
                     price=row.price,
                 )

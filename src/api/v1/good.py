@@ -14,6 +14,7 @@ router = APIRouter(prefix="/goods", tags=["Товары"])
 @router.get("", status_code=status.HTTP_200_OK, dependencies=[Security(verify_token_goods)])
 async def get_goods_by_filter(
     good_service: GoodService = Depends(),
+    cart_outlet_guid: str | None = Query(default=None),
     price_type_guid: str = Query(default=RETAIL_PRICE_TYPE),
     price_from: float | None = Query(default=None),
     price_to: float | None = Query(default=None),
@@ -23,6 +24,7 @@ async def get_goods_by_filter(
     name: str | None = Query(default=None),
 ) -> GoodPageSchema:
     return await good_service.get_by_filters(
+        cart_outlet_guid=cart_outlet_guid,
         price_type_guid=price_type_guid,
         price_from=price_from,
         price_to=price_to,
@@ -41,7 +43,10 @@ async def get_goods_by_filter(
 )
 async def get_good_by_id(
     guid: str,
+    cart_outlet_guid: str | None = Query(default=None),
     price_type_guid: str = Query(default=RETAIL_PRICE_TYPE),
     good_service: GoodService = Depends(),
 ) -> GoodWithPropertiesGetSchema:
-    return await good_service.get_by_guid_with_properties(guid=guid, price_type_guid=price_type_guid)
+    return await good_service.get_by_guid_with_properties(
+        guid=guid, price_type_guid=price_type_guid, cart_outlet_guid=cart_outlet_guid
+    )
