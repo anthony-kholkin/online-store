@@ -2,7 +2,6 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions import (
-    cart_not_found_exception,
     no_good_exception,
     good_not_found_exception,
     no_cart_goods_exception,
