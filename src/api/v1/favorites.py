@@ -42,7 +42,7 @@ async def add_good_to_favorites(
     response_model=DeleteFavoritesSchema,
     dependencies=[Security(verify_token_outlets)],
 )
-async def delete_good_from_cart(
+async def delete_good_from_favorites(
     cart_outlet_guid: str = Path(...),
     good_guid: str = Query(...),
     favorites_service: FavoritesService = Depends(),
