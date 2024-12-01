@@ -158,7 +158,7 @@ class CartService:
         if not cart_rows:
             return GetCartSchema(cart_outlet_guid=cart_outlet_guid, goods=[], total_cost=0)
 
-        total_cost = 0
+        total_cost = 0.
 
         goods: list[GetCartGoodSchema] = []
 
