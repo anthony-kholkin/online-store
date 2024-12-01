@@ -7,10 +7,12 @@ __all__ = (
     "PriceType",
     "Price",
     "Cart",
+    "Favorites",
     "GUID",
 )
 
 from db.models.base import BaseModel
+from db.models.favorites import Favorites
 from db.models.good import Good
 from db.models.good_group import GoodGroup
 from db.models.mixins import GUID

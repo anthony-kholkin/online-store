@@ -3,17 +3,17 @@ from fastapi import HTTPException, status
 
 good_group_not_found_exception = HTTPException(
     status_code=status.HTTP_404_NOT_FOUND,
-    detail="Группа номенклатуры не найдена",
+    detail="Группа номенклатуры не найдена.",
 )
 
 specification_not_found_exception = HTTPException(
     status_code=status.HTTP_404_NOT_FOUND,
-    detail="Характеристика номенклатуры не найдена",
+    detail="Характеристика номенклатуры не найдена.",
 )
 
 good_not_found_exception = HTTPException(
     status_code=status.HTTP_404_NOT_FOUND,
-    detail="Товар не найден",
+    detail="Товар не найден.",
 )
 
 good_in_good_not_found_exception = HTTPException(
@@ -23,12 +23,12 @@ good_in_good_not_found_exception = HTTPException(
 
 property_not_found_exception = HTTPException(
     status_code=status.HTTP_404_NOT_FOUND,
-    detail="Свойство не найдено",
+    detail="Свойство не найдено.",
 )
 
 price_type_not_found_exception = HTTPException(
     status_code=status.HTTP_404_NOT_FOUND,
-    detail="Вид цены номенклатуры не найден",
+    detail="Вид цены номенклатуры не найден.",
 )
 
 upload_image_exception = HTTPException(
@@ -78,12 +78,17 @@ outlets_1c_error_exception = HTTPException(
 
 cart_not_found_exception = HTTPException(
     status_code=status.HTTP_404_NOT_FOUND,
-    detail="Корзина для данной торговой точки не найдена",
+    detail="Корзина для данной торговой точки не найдена.",
 )
 
 no_good_exception = HTTPException(
     status_code=status.HTTP_400_BAD_REQUEST,
     detail="Нельзя добавить товар, которого недостаточно на складе.",
+)
+
+no_good_with_the_price_type_exception = HTTPException(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    detail="Нельзя добавить товар с данным `price_type_guid`.",
 )
 
 no_auth_exception = HTTPException(
@@ -119,4 +124,9 @@ no_cart_goods_exception = HTTPException(
 no_price_type_guid_exception = HTTPException(
     status_code=status.HTTP_400_BAD_REQUEST,
     detail="Нельзя отфильтровать товары по цене без указания `price_type_guid`.",
+)
+
+favorites_not_found_exception = HTTPException(
+    status_code=status.HTTP_404_NOT_FOUND,
+    detail="Избранное для данной торговой точки не найдено.",
 )
