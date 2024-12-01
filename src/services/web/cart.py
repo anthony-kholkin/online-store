@@ -183,6 +183,9 @@ class CartService:
             cart_outlet_guid=cart_outlet_guid, good_guid=good_guid, specification_guid=specification_guid
         )
 
+        if not cart_good:
+            raise no_cart_goods_exception
+
         return CartGoodSchema(
             cart_outlet_guid=cart_outlet_guid,
             good_guid=good_guid,

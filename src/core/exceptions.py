@@ -112,8 +112,8 @@ invalid_quantity_exception = HTTPException(
 )
 
 no_cart_goods_exception = HTTPException(
-    status_code=status.HTTP_400_BAD_REQUEST,
-    detail="Нельзя обновить количество товара, которого нет в корзине.",
+    status_code=status.HTTP_404_NOT_FOUND,
+    detail="Товар отсутствует в корзине.",
 )
 
 no_price_type_guid_exception = HTTPException(
