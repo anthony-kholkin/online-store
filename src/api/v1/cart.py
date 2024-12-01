@@ -32,7 +32,7 @@ async def get_cart_by_outlet_guid(
 @router.get(
     "/{cart_outlet_guid}/cart/good",
     status_code=status.HTTP_200_OK,
-    response_model=CartGoodSchema,
+    response_model=LightCartGoodSchema,
     dependencies=[Security(verify_token_outlets)],
 )
 async def get_cart_good_by_outlet_guid(
