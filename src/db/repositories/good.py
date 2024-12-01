@@ -1,9 +1,10 @@
-from typing import Sequence
+from typing import Sequence, Any
 
-from sqlalchemy import select, Select, or_, func
+from sqlalchemy import select, Select, or_, func, exists, case, and_, Row
 
 from core.exceptions import no_price_type_guid_exception
 from db.models import Good, GoodStorage, Price
+from db.models.favorites_good import favorites_goods
 from db.repositories.base import BaseDatabaseRepository
 from schemas.good import GoodCreateSchema
 
@@ -11,6 +12,14 @@ from schemas.good import GoodCreateSchema
 class GoodRepository(BaseDatabaseRepository):
     async def get_by_guid(self, guid: str) -> Good | None:
         return await self._session.get(Good, guid)
+
+    async def is_favorite(self, cart_outlet_guid: str, good_guid: str) -> bool:
+        query = select(favorites_goods).where(
+            favorites_goods.c.cart_outlet_guid == cart_outlet_guid,
+            favorites_goods.c.good_guid == good_guid,
+        )
+        result = await self._session.execute(query)
+        return result.scalar() is not None
 
     async def merge(self, data: GoodCreateSchema) -> Good:
         good = Good(**data.model_dump(exclude_unset=True))
@@ -73,8 +82,24 @@ class GoodRepository(BaseDatabaseRepository):
         price_type_guid: str | None = None,
         price_from: float | None = None,
         price_to: float | None = None,
-    ) -> tuple[Sequence[Good], int]:
-        query = select(Good)
+        cart_outlet_guid: str | None = None,
+    ) -> tuple[Sequence[Row[tuple[Any]]], int]:
+        query = select(
+            Good,
+            case(
+                (
+                    exists().where(
+                        and_(
+                            favorites_goods.c.cart_outlet_guid == cart_outlet_guid,
+                            favorites_goods.c.good_guid == Good.guid,
+                        )
+                    ),
+                    True,
+                ),
+                else_=False,
+            ).label("is_favorite"),
+        )
+
 
         if in_stock is not None:
             query = self.filter_by_in_stock(query=query, in_stock=in_stock)
@@ -92,4 +117,5 @@ class GoodRepository(BaseDatabaseRepository):
         query = self.get_pagination_query(query=query, offset=(page - 1) * size, limit=size)
 
         query_result = await self._session.execute(query)
-        return query_result.scalars().all(), count
+
+        return query_result.all(), count

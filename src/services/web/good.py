@@ -43,7 +43,9 @@ class GoodService(BaseGoodService):
         self._good_specification_repository = good_specification_repository
         self._good_group_service = good_group_service
 
-    async def get_by_guid_with_properties(self, guid: str, price_type_guid: str) -> GoodWithPropertiesGetSchema:
+    async def get_by_guid_with_properties(
+        self, guid: str, price_type_guid: str, cart_outlet_guid: str | None
+    ) -> GoodWithPropertiesGetSchema:
         good = await self._good_repository.get_by_guid(guid=guid)
 
         if not good:
@@ -53,6 +55,10 @@ class GoodService(BaseGoodService):
 
         if image_key is None:
             image_key = await self._s3_storage.generate_presigned_url(key="image not found.png")
+
+        is_favorite = False
+        if cart_outlet_guid:
+            is_favorite = await self._good_repository.is_favorite(cart_outlet_guid=cart_outlet_guid, good_guid=guid)
 
         property_schemas = [
             GoodPropertyGetSchema(name=value, value=getattr(good, name))
@@ -77,6 +83,7 @@ class GoodService(BaseGoodService):
         return GoodWithPropertiesGetSchema(
             guid=good.guid,
             name=good.name,
+            is_favorite=is_favorite,
             good_group_guid=good.good_group_guid,
             description=good.description,
             type=good.type,
@@ -88,6 +95,7 @@ class GoodService(BaseGoodService):
     async def get_by_filters(
         self,
         price_type_guid: str,
+        cart_outlet_guid: str | None,
         price_from: float | None,
         price_to: float | None,
         page: int,
@@ -97,6 +105,7 @@ class GoodService(BaseGoodService):
     ) -> GoodPageSchema:
         pagination_goods, total = await self._good_repository.get_by_filters(
             price_type_guid=price_type_guid,
+            cart_outlet_guid=cart_outlet_guid,
             price_from=price_from,
             price_to=price_to,
             page=page,
@@ -109,10 +118,11 @@ class GoodService(BaseGoodService):
 
         schema_goods = []
 
-        for good in pagination_result["items"]:
+        for good, is_favorite in pagination_result["items"]:
             image_key = await self._s3_storage.generate_presigned_url(key=good.image_key)
             good_schema = GoodCardGetSchema.model_validate(good)
             good_schema.image_key = image_key
+            good_schema.is_favorite = is_favorite
             good_schema.prices = [
                 PriceGetSchema(
                     good_guid=price.good_guid,

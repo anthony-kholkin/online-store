@@ -1,12 +1,12 @@
 import math
 from typing import Any, Sequence
 
-from db.models import BaseModel
+from sqlalchemy import Row
 
 
 class BaseService:
     @staticmethod
-    def get_pagination_result(objects: Sequence[BaseModel], page: int, size: int, total: int) -> dict[str, Any]:
+    def get_pagination_result(objects: Sequence[Row[tuple[Any]]], page: int, size: int, total: int) -> dict[str, Any]:
         return {
             "items": list(objects),
             "page": page,
