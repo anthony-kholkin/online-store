@@ -1,8 +1,6 @@
-from typing import Sequence
+from sqlalchemy import select, and_, func
 
-from sqlalchemy import select, and_, Row, func
-
-from db.models import Favorites, Price, Good, GoodStorage
+from db.models import Favorites, Price, Good
 from db.models.favorites_good import favorites_goods
 from db.repositories.base import BaseDatabaseRepository
 
@@ -26,17 +24,14 @@ class FavoritesRepository(BaseDatabaseRepository):
             )
             .join(favorites_goods, Favorites.cart_outlet_guid == favorites_goods.c.cart_outlet_guid)
             .join(Good, favorites_goods.c.good_guid == Good.guid)
-            .join(Price, and_(
-                Price.good_guid == Good.guid,
-                Price.price_type_guid == price_type_guid
-            ))
-            .join(GoodStorage, and_(
-                GoodStorage.good_guid == Good.guid,
-                GoodStorage.in_stock > 0
-            ))
+            .join(Price, and_(Price.good_guid == Good.guid, Price.price_type_guid == price_type_guid))
+            # .join(GoodStorage, and_(GoodStorage.good_guid == Good.guid, GoodStorage.in_stock > 0))
             .where(Favorites.cart_outlet_guid == cart_outlet_guid)
             .group_by(Favorites.cart_outlet_guid, Good.guid, Good.name, Good.image_key)
         )
 
         result = await self._session.execute(query)
         return result.fetchall()
+
+    async def get_cart_by_cart_outlet_guid(self, cart_outlet_guid: str) -> Favorites | None:
+        return await self._session.get(Favorites, cart_outlet_guid)

@@ -86,6 +86,11 @@ no_good_exception = HTTPException(
     detail="Нельзя добавить товар, которого недостаточно на складе.",
 )
 
+no_good_with_the_price_type_exception = HTTPException(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    detail="Нельзя добавить товар с данным `price_type_guid`.",
+)
+
 no_auth_exception = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
     detail="Для работы с данным ресурсом требуется авторизация.",
@@ -125,4 +130,3 @@ favorites_not_found_exception = HTTPException(
     status_code=status.HTTP_404_NOT_FOUND,
     detail="Избранное для данной торговой точки не найдено.",
 )
-

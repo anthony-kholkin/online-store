@@ -38,8 +38,6 @@ class GetCartSchema(GetBaseCartSchema):
     total_cost: float
 
 
-
-
 class CartGoodSchema(BaseOrmSchema):
     cart_outlet_guid: str
     price_type_guid: str

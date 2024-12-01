@@ -5,7 +5,7 @@ from core.exceptions import (
     no_good_exception,
     good_not_found_exception,
     no_cart_goods_exception,
-    good_in_good_not_found_exception,
+    no_good_with_the_price_type_exception,
 )
 from db.models import Cart
 from db.repositories.cart import CartRepository
@@ -58,6 +58,9 @@ class CartService:
 
         await self._price_type_service.get_by_guid(guid=data.price_type_guid)
 
+        if data.price_type_guid not in [outlet.price_type_guid for outlet in outlets]:
+            raise no_good_with_the_price_type_exception
+
         if not good:
             raise good_not_found_exception
 
@@ -87,15 +90,13 @@ class CartService:
             specification_guid=specification_guid,
         )
 
-        if not cart_good:
-            raise good_in_good_not_found_exception
-
-        await self._cart_good_repository.delete_good(
-            cart_outlet_guid=cart_outlet_guid,
-            good_guid=good_guid,
-            specification_guid=specification_guid,
-        )
-        await self._session.commit()
+        if cart_good:
+            await self._cart_good_repository.delete_good(
+                cart_outlet_guid=cart_outlet_guid,
+                good_guid=good_guid,
+                specification_guid=specification_guid,
+            )
+            await self._session.commit()
 
         return DeleteGoodSchema(
             cart_outlet_guid=cart_outlet_guid,

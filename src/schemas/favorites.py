@@ -8,6 +8,17 @@ class GetFavoritesGoodSchema(BaseOrmSchema):
     price: float
 
 
-class GetFavoritesSchema(BaseOrmSchema):
+class BaseFavoritesSchema(BaseOrmSchema):
     cart_outlet_guid: str
+
+
+class GetFavoritesSchema(BaseFavoritesSchema):
     goods: list[GetFavoritesGoodSchema]
+
+
+class AddFavoritesSchema(GetFavoritesGoodSchema):
+    cart_outlet_guid: str
+
+
+class DeleteFavoritesSchema(BaseFavoritesSchema):
+    good_guid: str

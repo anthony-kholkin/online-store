@@ -6,7 +6,7 @@ from db.models.favorites_good import favorites_goods
 
 
 class Favorites(BaseModel):
-    __tablename__ = "favorites"
+    __tablename__ = "favorites"  # type: ignore
 
     cart_outlet_guid: Mapped[str] = mapped_column(String(255), nullable=False, primary_key=True)
 
