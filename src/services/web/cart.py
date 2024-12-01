@@ -153,7 +153,7 @@ class CartService:
         cart_rows = await self._cart_repository.get_cart_with_prices(cart_outlet_guid=cart_outlet_guid)
 
         if not cart_rows:
-            raise cart_not_found_exception
+            return GetCartSchema(cart_outlet_guid=cart_outlet_guid, goods=[], total_cost=0)
 
         total_cost = 0
 
