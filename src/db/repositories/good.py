@@ -88,6 +88,7 @@ class GoodRepository(BaseDatabaseRepository):
         count = await self._session.scalar(select(func.count()).select_from(query.subquery()))
         count = count if count else 0
 
+        query = query.distinct(Good.guid)
         query = self.get_pagination_query(query=query, offset=(page - 1) * size, limit=size)
 
         query_result = await self._session.execute(query)

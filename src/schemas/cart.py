@@ -48,6 +48,13 @@ class CartGoodSchema(BaseOrmSchema):
     quantity: int
 
 
+class LightCartGoodSchema(BaseOrmSchema):
+    cart_outlet_guid: str
+    good_guid: str
+    specification_guid: str
+    quantity: int
+
+
 class DeleteGoodSchema(GetBaseCartSchema):
     good_guid: str
     specification_guid: str

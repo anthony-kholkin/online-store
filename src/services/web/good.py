@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -85,6 +87,19 @@ class GoodService(BaseGoodService):
             specification=specifications,
         )
 
+    def check_duplicates(self, items: list[GoodCardGetSchema]) -> None:
+        res_d: dict[str, int] = defaultdict(int)
+
+        for item in items:
+            res_d[item.guid] += 1
+
+        duplicates = [guid for guid, count in res_d.items() if count > 1]
+
+        if duplicates:
+            print(f"Найдены дубликаты: {duplicates}")
+        else:
+            print("Дубликаты не найдены.")
+
     async def get_by_filters(
         self,
         price_type_guid: str,
@@ -131,6 +146,8 @@ class GoodService(BaseGoodService):
                 good_schema.image_key = await self._s3_storage.generate_presigned_url(key="image not found.png")
 
             schema_goods.append(good_schema)
+
+        self.check_duplicates(items=schema_goods)
 
         return GoodPageSchema(
             items=schema_goods,
