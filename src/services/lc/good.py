@@ -55,7 +55,7 @@ class lCGoodService(BaseGoodService):
 
         return good
 
-    async def add_image(self, data: ImageAddSchema) -> Good:
+    async def add_image(self, data: ImageAddSchema) -> str:
         good = await self.get_by_guid(guid=data.good_guid)
 
         image = base64_to_bytes_image(base64_image=data.image)
@@ -75,4 +75,4 @@ class lCGoodService(BaseGoodService):
         await self._good_repository.add_image(instance=good, image_key=image_key)
         await self._session.commit()
 
-        return good
+        return good.guid

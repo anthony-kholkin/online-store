@@ -19,9 +19,9 @@ async def create_good(
     return await good_service.merge(data=data)
 
 
-@router.post("/image", status_code=status.HTTP_201_CREATED, response_model=GoodWithSpecsGetSchema)
+@router.post("/image", status_code=status.HTTP_201_CREATED)
 async def add_image(
     data: ImageAddSchema,
     good_service: lCGoodService = Depends(),
-) -> Good:
+) -> str:
     return await good_service.add_image(data=data)
