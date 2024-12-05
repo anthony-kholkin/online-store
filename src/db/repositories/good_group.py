@@ -36,3 +36,9 @@ class GoodGroupRepository(BaseDatabaseRepository):
 
     async def delete(self, guid: str) -> None:
         await self._session.execute(delete(GoodGroup).where(GoodGroup.guid == guid))
+
+    async def get_good_groups_by_pattern_name(self, pattern: str = r"^\d+\.\s.*$") -> Sequence[GoodGroup]:
+        query = select(GoodGroup).where(GoodGroup.name.op("~")(pattern)).order_by(GoodGroup.name)
+        query_result = await self._session.execute(query)
+
+        return query_result.scalars().all()

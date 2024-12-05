@@ -18,6 +18,9 @@ async def get_goods_by_filter(
     price_type_guid: str = Query(default=RETAIL_PRICE_TYPE),
     price_from: float | None = Query(default=None),
     price_to: float | None = Query(default=None),
+    good_group_guids: str | None = Query(
+        default=None, description="Список guid групп товаров (категорий), " "разделенных ','"
+    ),
     page: int = Query(ge=1, default=1),
     size: int = Query(ge=1, le=100, default=20),
     in_stock: bool | None = Query(default=None),
@@ -28,6 +31,7 @@ async def get_goods_by_filter(
         price_type_guid=price_type_guid,
         price_from=price_from,
         price_to=price_to,
+        good_group_guids=good_group_guids.split(","),
         page=page,
         size=size,
         in_stock=in_stock,

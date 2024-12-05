@@ -18,7 +18,7 @@ class BaseDatabaseRepository:
         self._session = session
 
     @staticmethod
-    def get_pagination_query(query: Select[tuple[MODEL]], offset: int, limit: int) -> Select[tuple[Any]]:
+    def get_pagination_query(query: Select[tuple[MODEL, Any]], offset: int, limit: int) -> Select[tuple[MODEL, Any]]:
         return query.offset(offset).limit(limit)
 
     async def get_total_count(self, model: Type[MODEL]) -> int:

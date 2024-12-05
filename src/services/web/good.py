@@ -98,20 +98,22 @@ class GoodService(BaseGoodService):
         cart_outlet_guid: str | None,
         price_from: float | None,
         price_to: float | None,
+        good_group_guids: list[str] | None,
         page: int,
         size: int,
         in_stock: bool | None = None,
         name: str | None = None,
     ) -> GoodPageSchema:
         pagination_goods, total = await self._good_repository.get_by_filters(
-            price_type_guid=price_type_guid,
-            cart_outlet_guid=cart_outlet_guid,
-            price_from=price_from,
-            price_to=price_to,
             page=page,
             size=size,
             in_stock=in_stock,
             name=name,
+            price_type_guid=price_type_guid,
+            price_from=price_from,
+            price_to=price_to,
+            good_group_guids=good_group_guids,
+            cart_outlet_guid=cart_outlet_guid,
         )
 
         pagination_result = self.get_pagination_result(objects=pagination_goods, page=page, size=size, total=total)

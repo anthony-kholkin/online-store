@@ -3,7 +3,7 @@ from typing import Sequence, Any
 from sqlalchemy import select, Select, or_, func, exists, case, and_, Row
 
 from core.exceptions import no_price_type_guid_exception
-from db.models import Good, GoodStorage, Price
+from db.models import Good, GoodStorage, Price, GoodGroup
 from db.models.favorites_good import favorites_goods
 from db.repositories.base import BaseDatabaseRepository
 from schemas.good import GoodCreateSchema
@@ -35,7 +35,7 @@ class GoodRepository(BaseDatabaseRepository):
         await self._session.flush()
 
     @staticmethod
-    def filter_by_in_stock(query: Select[tuple[Good]], in_stock: bool) -> Select[tuple[Good]]:
+    def filter_by_in_stock(query: Select[tuple[Good, Any]], in_stock: bool) -> Select[tuple[Good, Any]]:
         if in_stock:
             filtered_query = query.join(Good.storages).filter(GoodStorage.in_stock > 0)
         else:
@@ -46,7 +46,7 @@ class GoodRepository(BaseDatabaseRepository):
         return filtered_query
 
     @staticmethod
-    def filter_by_name(query: Select[tuple[Good]], name: str) -> Select[tuple[Good]]:
+    def filter_by_name(query: Select[tuple[Good, Any]], name: str) -> Select[tuple[Good, Any]]:
         search_query = func.plainto_tsquery("multi_lang", name)
         filtered_query = query.filter(func.to_tsvector("multi_lang", Good.name).op("@@")(search_query))
 
@@ -54,11 +54,11 @@ class GoodRepository(BaseDatabaseRepository):
 
     @staticmethod
     def filter_by_price(
-        query: Select[tuple[Good]],
+        query: Select[tuple[Good, Any]],
         price_from: float | None,
         price_to: float | None,
         price_type_guid: str | None,
-    ) -> Select[tuple[Good]]:
+    ) -> Select[tuple[Good, Any]]:
         if not price_type_guid:
             raise no_price_type_guid_exception
 
@@ -73,6 +73,26 @@ class GoodRepository(BaseDatabaseRepository):
 
         return query.filter(Good.guid.in_(select(res_subquery.c.good_guid)))
 
+    async def filter_by_group_guid(
+        self, query: Select[tuple[Good, Any]], good_group_guids: list[str]
+    ) -> Select[tuple[Good, Any]]:
+        child_group_query = (
+            select(GoodGroup.guid)
+            .where(GoodGroup.parent_group_guid.in_(good_group_guids))
+            .cte(name="child_groups", recursive=True)
+        )
+
+        recursive_part = select(GoodGroup.guid).where(GoodGroup.parent_group_guid == child_group_query.c.guid)
+        child_group_query = child_group_query.union_all(recursive_part)
+
+        all_group_guids = good_group_guids + [
+            row[0] for row in (await self._session.execute(select(child_group_query.c.guid))).all()
+        ]
+
+        filtered_query = query.where(Good.good_group_guid.in_(all_group_guids))
+
+        return filtered_query
+
     async def get_by_filters(
         self,
         page: int,
@@ -82,8 +102,9 @@ class GoodRepository(BaseDatabaseRepository):
         price_type_guid: str | None = None,
         price_from: float | None = None,
         price_to: float | None = None,
+        good_group_guids: list[str] | None = None,
         cart_outlet_guid: str | None = None,
-    ) -> tuple[Sequence[Row[tuple[Any]]], int]:
+    ) -> tuple[Sequence[Row[tuple[Good, Any]]], int]:
         query = select(
             Good,
             case(
@@ -100,6 +121,8 @@ class GoodRepository(BaseDatabaseRepository):
             ).label("is_favorite"),
         )
 
+        if good_group_guids is not None:
+            query = await self.filter_by_group_guid(query=query, good_group_guids=good_group_guids)
         if in_stock is not None:
             query = self.filter_by_in_stock(query=query, in_stock=in_stock)
         if name is not None:
