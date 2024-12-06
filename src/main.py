@@ -10,7 +10,7 @@ from api.router import api_router
 from core.config import settings
 from core.middleware import LogMiddleware
 
-app = FastAPI(title="Online Store", openapi_url="/api/openapi.json", docs_url="/api/swagger", version="0.9.0")
+app = FastAPI(title="Online Store", openapi_url="/api/openapi.json", docs_url="/api/swagger", version="0.11.0")
 
 add_pagination(app)
 
