@@ -1,4 +1,3 @@
-
 from fastapi import Depends
 
 from db.repositories.good_group import GoodGroupRepository

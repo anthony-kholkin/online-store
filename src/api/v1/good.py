@@ -25,17 +25,19 @@ async def get_goods_by_filter(
     size: int = Query(ge=1, le=100, default=20),
     in_stock: bool | None = Query(default=None),
     name: str | None = Query(default=None),
+    order_by: str | None = Query(default=None, description="Критерии сортировки: 'name' или 'price'"),
 ) -> GoodPageSchema:
     return await good_service.get_by_filters(
         cart_outlet_guid=cart_outlet_guid,
         price_type_guid=price_type_guid,
         price_from=price_from,
         price_to=price_to,
-        good_group_guids=good_group_guids.split(","),
+        good_group_guids=good_group_guids.split(",") if good_group_guids else None,
         page=page,
         size=size,
         in_stock=in_stock,
         name=name,
+        order_by=order_by,
     )
 
 

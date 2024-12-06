@@ -103,6 +103,7 @@ class GoodService(BaseGoodService):
         size: int,
         in_stock: bool | None = None,
         name: str | None = None,
+        order_by: str | None = None,
     ) -> GoodPageSchema:
         pagination_goods, total = await self._good_repository.get_by_filters(
             page=page,
@@ -114,6 +115,7 @@ class GoodService(BaseGoodService):
             price_to=price_to,
             good_group_guids=good_group_guids,
             cart_outlet_guid=cart_outlet_guid,
+            order_by=order_by,
         )
 
         pagination_result = self.get_pagination_result(objects=pagination_goods, page=page, size=size, total=total)

@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, status, Depends
 from schemas.good_group import GetGoodGroupSchema
 from services.web.good_group import GoodGroupService

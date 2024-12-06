@@ -1,6 +1,6 @@
-from typing import Sequence, Any
+from typing import Any
 
-from sqlalchemy import select, Select, or_, func, exists, case, and_, Row
+from sqlalchemy import select, Select, or_, func, exists, case, and_
 
 from core.exceptions import no_price_type_guid_exception
 from db.models import Good, GoodStorage, Price, GoodGroup
@@ -104,7 +104,8 @@ class GoodRepository(BaseDatabaseRepository):
         price_to: float | None = None,
         good_group_guids: list[str] | None = None,
         cart_outlet_guid: str | None = None,
-    ) -> tuple[Sequence[Row[tuple[Good, Any]]], int]:
+        order_by: str | None = None,
+    ) -> tuple[list[tuple[Any, Any]], int]:
         query = select(
             Good,
             case(
@@ -132,7 +133,23 @@ class GoodRepository(BaseDatabaseRepository):
             query=query, price_from=price_from, price_to=price_to, price_type_guid=price_type_guid
         )
 
-        query = query.distinct(Good.guid)
+        if order_by is not None:
+            match order_by:
+                case "name":
+                    query = query.order_by(Good.name)
+                case "price":
+                    min_price_subq = (
+                        select(Price.good_guid, func.min(Price.value).label("min_price"))
+                        .where(Price.price_type_guid == price_type_guid)
+                        .group_by(Price.good_guid)
+                        .subquery()
+                    )
+
+                    query = query.join(min_price_subq, Good.guid == min_price_subq.c.good_guid)
+                    query = query.add_columns(min_price_subq.c.min_price)
+                    query = query.order_by(min_price_subq.c.min_price.desc())
+
+        query = query.distinct()
         count = await self._session.scalar(select(func.count()).select_from(query.subquery()))
         count = count if count else 0
 
@@ -140,4 +157,9 @@ class GoodRepository(BaseDatabaseRepository):
 
         query_result = await self._session.execute(query)
 
-        return query_result.all(), count
+        if order_by == "price":
+            processed_result = [(row[0], row[1]) for row in query_result.all()]
+        else:
+            processed_result = query_result.all()
+
+        return list(processed_result), count
