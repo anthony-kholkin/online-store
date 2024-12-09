@@ -36,6 +36,6 @@ class Price(BaseModel):
 
     def __repr__(self):
         return (
-            f"Price(good_guid={self.good_guid}, specification_guid='{self.specification_guid}', "
+            f"<Price(good_guid={self.good_guid}, specification_guid='{self.specification_guid}', "
             f"price_type_guid='{self.price_type_guid}', , value='{self.value}')>"
         )

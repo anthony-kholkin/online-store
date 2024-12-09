@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, func, String, TypeDecorator
+from sqlalchemy import DateTime, func, String, TypeDecorator, Integer
 from sqlalchemy.orm import Mapped, mapped_column
 
 
@@ -26,6 +26,14 @@ class GUIDMixin:
     __abstract__ = True
 
     guid: Mapped[str] = mapped_column(GUID(), primary_key=True, default=lambda: str(uuid.uuid4()))
+
+
+class IDMixin:
+    """Mixin of implement id."""
+
+    __abstract__ = True
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)
 
 
 class CreatedAtMixin:

@@ -2,7 +2,6 @@ import math
 from typing import Any
 
 
-
 class BaseService:
     @staticmethod
     def get_pagination_result(objects: list[tuple[Any, Any]], page: int, size: int, total: int) -> dict[str, Any]:

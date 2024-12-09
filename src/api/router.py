@@ -14,6 +14,7 @@ from api.v1.outlet import router as outlet_router
 from api.v1.cart import router as cart_router
 from api.v1.favorites import router as favorites_router
 from api.v1.good_group import router as good_group_router
+from api.v1.order import router as order_router
 
 lc_router = APIRouter(prefix="/1c")
 lc_router.include_router(lc_good_group_router)
@@ -30,6 +31,7 @@ v1_router.include_router(good_router)
 v1_router.include_router(good_group_router)
 v1_router.include_router(outlet_router)
 v1_router.include_router(cart_router)
+v1_router.include_router(order_router)
 v1_router.include_router(favorites_router)
 v1_router.include_router(contact_me_router)
 

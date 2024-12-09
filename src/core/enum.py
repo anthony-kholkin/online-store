@@ -1,13 +1,13 @@
 from enum import Enum
 
 
-class GoodTypesEnum(Enum):
+class GoodTypesEnum(str, Enum):
     NEW = "new"
     REGULAR = "regular"
     HIT = "hit"
 
 
-class PropertyNamesEnum(Enum):
+class PropertyNamesEnum(str, Enum):
     FILLING = "Начинка"
     FLAVOR = "Аромат"
     STRENGTH = "Крепость"
@@ -16,3 +16,9 @@ class PropertyNamesEnum(Enum):
     PACKAGING = "Упаковка"
     BLOCK = "Блок"
     BOX = "Короб"
+
+
+class OrderStatusEnum(str, Enum):
+    OPEN = "Открыт"
+    IN_PROCESS = "Обрабатывается"
+    DONE = "Исполнен"

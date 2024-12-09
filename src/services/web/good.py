@@ -5,7 +5,9 @@ from core.constants import PROPERTY_COLUMNS
 from core.exceptions import (
     good_not_found_exception,
     no_goods_specs_associations_exception,
+    no_good_exception,
 )
+from db.models import Good
 from db.repositories.good import GoodRepository
 from db.repositories.good_specification import GoodSpecificationRepository
 from db.session import get_session
@@ -42,6 +44,23 @@ class GoodService(BaseGoodService):
         self._specification_service = specification_service
         self._good_specification_repository = good_specification_repository
         self._good_group_service = good_group_service
+
+    async def get_by_guid_with_check_storages(
+        self, good_guid: str, specification_guid: str, good_quantity: int
+    ) -> Good:
+        good = await self._good_repository.get_by_guid(guid=good_guid)
+
+        if not good:
+            raise good_not_found_exception
+
+        if not good.storages:
+            raise no_good_exception
+
+        for storage in good.storages:
+            if storage.specification_guid == specification_guid and storage.in_stock < good_quantity:
+                raise no_good_exception
+
+        return good
 
     async def get_by_guid_with_properties(
         self, guid: str, price_type_guid: str, cart_outlet_guid: str | None

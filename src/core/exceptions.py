@@ -130,3 +130,8 @@ favorites_not_found_exception = HTTPException(
     status_code=status.HTTP_404_NOT_FOUND,
     detail="Избранное для данной торговой точки не найдено.",
 )
+
+no_order_exception = HTTPException(
+    status_code=status.HTTP_404_NOT_FOUND,
+    detail="Заказ не найден.",
+)
