@@ -76,3 +76,13 @@ class OrderRepository(BaseDatabaseRepository):
         result = await self._session.execute(query)
 
         return result.fetchall()
+
+    async def get_order_by_guid(self, guid: str) -> Order | None:
+        query = select(Order).where(Order.guid == guid)
+        query_result = await self._session.execute(query)
+
+        return query_result.scalar_one_or_none()
+
+    async def update_order_status(self, instance: Order, status: OrderStatusEnum) -> None:
+        instance.status = status
+        await self._session.flush()

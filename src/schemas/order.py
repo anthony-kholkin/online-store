@@ -56,3 +56,8 @@ class GetOrderList(BaseOrmSchema):
     status: OrderStatusEnum
     created_at: datetime
     total_cost: float
+
+
+class UpdateOrderStatusSchema(BaseModel):
+    guid: str
+    status: OrderStatusEnum

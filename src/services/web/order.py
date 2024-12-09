@@ -14,7 +14,7 @@ from schemas.order import (
     CreateOrderGoodDbSchema,
     GetOrderWithGoodsSchema,
     GetOrderGoodSchema,
-    GetOrderList,
+    GetOrderList, UpdateOrderStatusSchema,
 )
 
 from services.web.good import GoodService
@@ -112,3 +112,17 @@ class OrderService:
             )
             for order in orders
         ]
+
+    async def update_order_status(self, cart_outlet_guid: str, data: UpdateOrderStatusSchema) -> Order:
+        order = await self._order_repository.get_order_by_guid(guid=data.guid)
+
+        if not order:
+            raise no_order_exception
+
+        if order.cart_outlet_guid != cart_outlet_guid:
+            raise access_denied_exception
+
+        await self._order_repository.update_order_status(instance=order, status=data.status)
+        await self._session.commit()
+
+        return order
