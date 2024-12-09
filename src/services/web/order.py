@@ -14,7 +14,8 @@ from schemas.order import (
     CreateOrderGoodDbSchema,
     GetOrderWithGoodsSchema,
     GetOrderGoodSchema,
-    GetOrderList, UpdateOrderStatusSchema,
+    GetOrderList,
+    UpdateOrderStatusSchema,
 )
 
 from services.web.good import GoodService
