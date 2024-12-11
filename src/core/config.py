@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     API_1C_URL: str
     CONTACT_ME_1C_URL: str = "feedback"
     AUTH_LOGIN_1C_URL: str = "auth"
+    AUTH_1C_LOGIN: str = "username"
+    AUTH_1C_PASSWORD: str = "password"
 
     CORS_ALLOW_ORIGIN_LIST: str = "*"
 

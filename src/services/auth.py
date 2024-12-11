@@ -1,12 +1,14 @@
+import base64
 import json
 from json import JSONDecodeError
 
 import aiohttp
+from fastapi.security import HTTPBasicCredentials, HTTPBasic
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from loguru import logger
 from pydantic import ValidationError
 from starlette.responses import JSONResponse, Response
-from fastapi import Depends, Cookie, Query, Path
+from fastapi import Depends, Cookie, Query, Path, HTTPException, status
 
 from core.config import settings
 from core.constants import RETAIL_PRICE_TYPE
@@ -154,3 +156,20 @@ async def verify_token_goods(
     token: str | None = Cookie(default=None, include_in_schema=False),
 ) -> None:
     return await auth_service.verify_token_goods(price_type_guid=price_type_guid, token=token)
+
+
+security = HTTPBasic()
+
+
+def authenticate(credentials: HTTPBasicCredentials = Depends(security)):
+    encoded_credentials = f"{credentials.username}:{credentials.password}".encode("utf-8")
+    token = base64.b64encode(encoded_credentials).decode("utf-8")
+
+    if credentials.username != settings().AUTH_1C_LOGIN or credentials.password != settings().AUTH_1C_PASSWORD:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+
+    return token
