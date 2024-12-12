@@ -1,7 +1,6 @@
 from fastapi import APIRouter, status, Security, Path, Depends, Query
 
-from db.models import Favorites
-from schemas.favorites import GetFavoritesSchema, BaseFavoritesSchema, DeleteFavoritesSchema
+from schemas.favorites import GetFavoritesSchema, AddOrDeleteFavoritesSchema
 from services.auth import verify_token_outlets
 from services.web.favorites import FavoritesService
 
@@ -25,28 +24,28 @@ async def get_favorites_by_outlet_guid(
 @router.post(
     "/{cart_outlet_guid}/favorites",
     status_code=status.HTTP_201_CREATED,
-    response_model=BaseFavoritesSchema,
+    response_model=AddOrDeleteFavoritesSchema,
     dependencies=[Security(verify_token_outlets)],
 )
 async def add_good_to_favorites(
     cart_outlet_guid: str = Path(...),
     good_guid: str = Query(...),
     favorites_service: FavoritesService = Depends(),
-) -> Favorites:
+) -> AddOrDeleteFavoritesSchema:
     return await favorites_service.add_good(cart_outlet_guid=cart_outlet_guid, good_guid=good_guid)
 
 
 @router.delete(
     "/{cart_outlet_guid}/favorites",
     status_code=status.HTTP_200_OK,
-    response_model=DeleteFavoritesSchema,
+    response_model=AddOrDeleteFavoritesSchema,
     dependencies=[Security(verify_token_outlets)],
 )
 async def delete_good_from_favorites(
     cart_outlet_guid: str = Path(...),
     good_guid: str = Query(...),
     favorites_service: FavoritesService = Depends(),
-) -> DeleteFavoritesSchema:
+) -> AddOrDeleteFavoritesSchema:
     return await favorites_service.delete_good(
         cart_outlet_guid=cart_outlet_guid,
         good_guid=good_guid,

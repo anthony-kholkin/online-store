@@ -20,5 +20,5 @@ class AddFavoritesSchema(GetFavoritesGoodSchema):
     cart_outlet_guid: str
 
 
-class DeleteFavoritesSchema(BaseFavoritesSchema):
+class AddOrDeleteFavoritesSchema(BaseFavoritesSchema):
     good_guid: str
