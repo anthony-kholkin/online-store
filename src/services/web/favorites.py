@@ -66,13 +66,13 @@ class FavoritesService:
             image_key = row.image_key
 
             if image_key is None:
-                image_key = await self._s3_storage.generate_presigned_url(key="image not found.png")
+                image_key = "image not found.png"
 
             goods.append(
                 GetFavoritesGoodSchema(
                     guid=row.good_guid,
                     name=row.name,
-                    image_key=image_key,
+                    image_key=await self._s3_storage.generate_presigned_url(key=image_key),
                     price=row.price,
                 )
             )
