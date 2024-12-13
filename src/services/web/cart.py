@@ -166,7 +166,7 @@ class CartService:
             image_key = row.image_key
 
             if image_key is None:
-                image_key = await self._s3_storage.generate_presigned_url(key="image not found.png")
+                image_key = "image not found.png"
 
             is_favorite = False
             if cart_outlet_guid:
@@ -180,7 +180,7 @@ class CartService:
                     specification_guid=row.specification_guid,
                     price_type_guid=row.price_type_guid,
                     name=row.name,
-                    image_key=image_key,
+                    image_key=await self._s3_storage.generate_presigned_url(key=image_key),
                     is_favorite=is_favorite,
                     quantity=row.quantity,
                     price=row.price,
