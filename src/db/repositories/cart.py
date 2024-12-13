@@ -63,6 +63,7 @@ class CartRepository(BaseDatabaseRepository):
             )
             .join(Good, Good.guid == cart_goods.c.good_guid)
             .where(Cart.cart_outlet_guid == cart_outlet_guid)
+            .order_by(Good.name)
         )
 
         result = await self._session.execute(query)
