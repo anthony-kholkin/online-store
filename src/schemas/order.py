@@ -61,3 +61,11 @@ class GetOrderList(BaseOrmSchema):
 class UpdateOrderStatusSchema(BaseModel):
     guid: str
     status: OrderStatusEnum
+
+
+class OrderPageSchema(BaseModel):
+    items: list[GetOrderList]
+    page: int
+    size: int
+    pages: int
+    total: int

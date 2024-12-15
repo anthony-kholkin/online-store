@@ -16,13 +16,15 @@ from schemas.order import (
     GetOrderGoodSchema,
     GetOrderList,
     UpdateOrderStatusSchema,
+    OrderPageSchema,
 )
+from services.base.base import BaseService
 
 from services.web.good import GoodService
 from storages.s3 import S3Storage
 
 
-class OrderService:
+class OrderService(BaseService):
     def __init__(
         self,
         session: AsyncSession = Depends(get_session),
@@ -100,19 +102,32 @@ class OrderService:
             goods=goods,
         )
 
-    async def get_all_by_cart_outlet_guid(self, cart_outlet_guid: str) -> list[GetOrderList]:
-        orders = await self._order_repository.get_orders_by_cart_outlet_guid(cart_outlet_guid)
+    async def get_all_by_cart_outlet_guid(self, cart_outlet_guid: str, page: int, size: int) -> OrderPageSchema:
+        pagination_orders, total = await self._order_repository.get_orders_by_cart_outlet_guid(
+            cart_outlet_guid, page=page, size=size
+        )
 
-        return [
-            GetOrderList(
-                id=order.id,
-                guid=order.guid,
-                status=order.status,
-                created_at=order.created_at,
-                total_cost=order.total_cost or 0,
+        pagination_result = self.get_pagination_result(objects=pagination_orders, page=page, size=size, total=total)
+        schema_orders = []
+
+        for order in pagination_result["items"]:
+            schema_orders.append(
+                GetOrderList(
+                    id=order.id,
+                    guid=order.guid,
+                    status=order.status,
+                    created_at=order.created_at,
+                    total_cost=order.total_cost or 0,
+                )
             )
-            for order in orders
-        ]
+
+        return OrderPageSchema(
+            items=schema_orders,
+            page=pagination_result["page"],
+            size=pagination_result["size"],
+            pages=pagination_result["pages"],
+            total=pagination_result["total"],
+        )
 
     async def update_order_status(self, cart_outlet_guid: str, data: UpdateOrderStatusSchema) -> Order:
         order = await self._order_repository.get_order_by_guid(guid=data.guid)

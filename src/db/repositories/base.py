@@ -1,4 +1,4 @@
-from typing import Any, Type, TypeVar
+from typing import Any, TypeVar
 
 from fastapi import Depends
 from sqlalchemy import Select, func, select
@@ -18,11 +18,12 @@ class BaseDatabaseRepository:
         self._session = session
 
     @staticmethod
-    def get_pagination_query(query: Select[tuple[MODEL, Any]], offset: int, limit: int) -> Select[tuple[MODEL, Any]]:
+    def get_pagination_query(query: Select[tuple[Any, ...]], offset: int, limit: int) -> Select[tuple[Any, ...]]:
         return query.offset(offset).limit(limit)
 
-    async def get_total_count(self, model: Type[MODEL]) -> int:
-        query = select(func.count()).select_from(model)
+    async def get_total_count(self, query: Select[tuple[Any, ...]]) -> int:
+        query = select(func.count()).select_from(query.subquery())
         query_result = await self._session.execute(query)
+        result = query_result.scalar_one()
 
-        return query_result.scalar_one()
+        return result if result else 0

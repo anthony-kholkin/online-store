@@ -1,5 +1,4 @@
-from datetime import datetime
-from typing import Sequence
+from typing import Sequence, Any
 
 from sqlalchemy import select, func, Row
 from sqlalchemy.orm import selectinload
@@ -59,8 +58,11 @@ class OrderRepository(BaseDatabaseRepository):
         }
 
     async def get_orders_by_cart_outlet_guid(
-        self, cart_outlet_guid: str
-    ) -> Sequence[Row[tuple[int, str, OrderStatusEnum, datetime, float]]]:
+        self,
+        cart_outlet_guid: str,
+        page: int,
+        size: int,
+    ) -> tuple[Sequence[Row[tuple[Any, ...]]], int]:
         query = (
             select(
                 Order.id,
@@ -73,9 +75,12 @@ class OrderRepository(BaseDatabaseRepository):
             .where(Order.cart_outlet_guid == cart_outlet_guid)
             .group_by(Order.id)
         )
-        result = await self._session.execute(query)
 
-        return result.fetchall()
+        count = await self.get_total_count(query=query)
+        query = self.get_pagination_query(query=query, offset=(page - 1) * size, limit=size)
+        query_result = await self._session.execute(query)
+
+        return query_result.fetchall(), count
 
     async def get_order_by_guid(self, guid: str) -> Order | None:
         query = select(Order).where(Order.guid == guid)

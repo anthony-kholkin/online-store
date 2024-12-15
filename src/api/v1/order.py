@@ -1,11 +1,11 @@
-from fastapi import status, Depends, Path, APIRouter, Body, Security
+from fastapi import status, Depends, Path, APIRouter, Body, Security, Query
 
 from db.models import Order
 from schemas.order import (
     GetOrderWithGoodsSchema,
     CreateOrderWithGoodsSchema,
     GetOrderAfterCreateSchema,
-    GetOrderList,
+    OrderPageSchema,
 )
 from services.auth import verify_token_outlets
 
@@ -45,11 +45,13 @@ async def get_order_by_id(
 @router.get(
     "/{cart_outlet_guid}/orders",
     status_code=status.HTTP_200_OK,
-    response_model=list[GetOrderList],
+    response_model=OrderPageSchema,
     dependencies=[Security(verify_token_outlets)],
 )
 async def get_orders(
     cart_outlet_guid: str = Path(...),
+    page: int = Query(ge=1, default=1),
+    size: int = Query(ge=1, le=100, default=20),
     order_service: OrderService = Depends(),
-) -> list[GetOrderList]:
-    return await order_service.get_all_by_cart_outlet_guid(cart_outlet_guid=cart_outlet_guid)
+) -> OrderPageSchema:
+    return await order_service.get_all_by_cart_outlet_guid(cart_outlet_guid=cart_outlet_guid, page=page, size=size)

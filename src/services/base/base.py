@@ -1,10 +1,10 @@
 import math
-from typing import Any
+from typing import Any, Sequence
 
 
 class BaseService:
     @staticmethod
-    def get_pagination_result(objects: list[tuple[Any, Any]], page: int, size: int, total: int) -> dict[str, Any]:
+    def get_pagination_result(objects: Sequence[Any], page: int, size: int, total: int) -> dict[str, Any]:
         return {
             "items": list(objects),
             "page": page,
