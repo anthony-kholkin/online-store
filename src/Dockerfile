@@ -19,8 +19,8 @@ RUN if [ $DEV_DEPS = True ] ; then \
   poetry install --no-interaction --no-ansi ; else \
   poetry install --only main --no-interaction --no-ansi ; fi
 
-#ENV TZ=Europe/Moscow
-#RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+ENV TZ=Europe/Moscow
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 COPY . .
 
