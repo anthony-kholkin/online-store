@@ -10,6 +10,10 @@ class PriceSchema(BaseOrmSchema):
     value: float
 
 
+class BatchPriceSchema(BaseOrmSchema):
+    prices: list[PriceSchema]
+
+
 class PriceGetSchema(BaseOrmSchema):
     good_guid: str
     specification: SpecificationSchema

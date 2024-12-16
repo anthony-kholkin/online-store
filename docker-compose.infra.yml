@@ -19,5 +19,16 @@ services:
       timeout: 20s
       retries: 3
 
+  redis:
+    image: redis/redis-stack:latest
+    restart: on-failure
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: redis-cli ping
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 volumes:
   minio_data:

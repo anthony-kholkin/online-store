@@ -22,3 +22,15 @@ class PriceRepository(BaseDatabaseRepository):
         await self._session.flush()
 
         return good_storage
+
+    async def merge_batch(self, data: list[PriceSchema]) -> list[Price]:
+        prices = []
+
+        for price_data in data:
+            price = Price(**price_data.model_dump(exclude_unset=True))
+            await self._session.merge(price)
+            prices.append(price)
+
+        await self._session.flush()
+
+        return prices

@@ -41,3 +41,17 @@ class PriceService:
         await self._session.commit()
 
         return price
+
+    async def create_or_update_batch(self, data: list[PriceSchema]) -> list[Price]:
+        prices = []
+
+        for price_data in data:
+            await self._good_service.get_by_guid(guid=price_data.good_guid)
+            await self._specification_service.get_by_guid(guid=price_data.specification_guid)
+            await self._price_type_service.get_by_guid(guid=price_data.price_type_guid)
+
+            price = await self._price_repository.merge(data=price_data)
+            prices.append(price)
+
+        await self._session.commit()
+        return prices
