@@ -1,6 +1,5 @@
-from fastapi import APIRouter, status, Depends, Query
+from fastapi import APIRouter, status, Depends
 
-from core.constants import RETAIL_PRICE_TYPE
 from schemas.good_group import GetTreeGoodGroupSchema
 from services.web.good_group import GoodGroupService
 

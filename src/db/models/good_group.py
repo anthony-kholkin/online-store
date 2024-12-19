@@ -12,20 +12,15 @@ class GoodGroup(BaseModel, GUIDMixin):
     )
 
     parent_group: Mapped["GoodGroup"] = relationship(
-        "GoodGroup",
-        back_populates="child_groups",
-        foreign_keys="GoodGroup.parent_group_guid",
+        "GoodGroup", back_populates="child_groups", foreign_keys="GoodGroup.parent_group_guid", lazy="selectin"
     )
 
     child_groups: Mapped[list["GoodGroup"]] = relationship(
-        "GoodGroup",
-        foreign_keys="GoodGroup.parent_group_guid",
+        "GoodGroup", foreign_keys="GoodGroup.parent_group_guid", lazy="selectin"
     )
 
     goods: Mapped[list["Good"]] = relationship(  # type: ignore # noqa: F821
-        "Good",
-        back_populates="good_group",
-        foreign_keys="Good.good_group_guid",
+        "Good", back_populates="good_group", foreign_keys="Good.good_group_guid", lazy="selectin"
     )
 
     def __repr__(self):

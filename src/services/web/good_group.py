@@ -1,9 +1,9 @@
 from functools import lru_cache
-from typing import Sequence
+from typing import Sequence, Any
 
 from fastapi import Depends
+from sqlalchemy import Row
 
-from db.models import GoodGroup
 from db.repositories.good_group import GoodGroupRepository
 from schemas.good_group import GetTreeGoodGroupSchema
 
@@ -17,18 +17,18 @@ class GoodGroupService:
 
     def build_group_tree(
         self,
-        good_groups: Sequence[GoodGroup],
+        good_groups: Sequence[Row[tuple[Any, ...] | Any]],
         parent_guid: str | None = None,
     ) -> list[GetTreeGoodGroupSchema]:
         grouped = [
             GetTreeGoodGroupSchema(
-                guid=group.guid,
-                name=group.name,
-                parent_group_guid=group.parent_group_guid,
+                guid=group[0],
+                name=group[1],
+                parent_group_guid=group[2],
                 child_groups=[],
             )
             for group in good_groups
-            if group.parent_group_guid == parent_guid
+            if group[2] == parent_guid
         ]
 
         for group in grouped:
