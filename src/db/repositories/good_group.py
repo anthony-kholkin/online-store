@@ -44,38 +44,28 @@ class GoodGroupRepository(BaseDatabaseRepository):
     #
     #     return query_result.scalars().all()
 
-    async def get_available_good_groups(self, price_type_guid: str) -> Sequence[GoodGroup]:
+    async def get_available_good_groups(self) -> Sequence[GoodGroup]:
         child_group_alias = aliased(GoodGroup)
 
-        # Базовый запрос для проверки наличия товаров в группе с остатками и ценой
-        goods_in_group_with_stock_and_price = (
+        goods_in_group_with_stock = (
             select(Good.guid)
             .join(GoodStorage, Good.guid == GoodStorage.good_guid)
-            .join(Price, and_(Good.guid == Price.good_guid, Price.price_type_guid == price_type_guid))
             .where(and_(GoodStorage.in_stock > 0, Good.good_group_guid == GoodGroup.guid))
             .exists()
         )
 
-        # Рекурсивная проверка дочерних групп
-        child_groups_with_criteria = (
+        child_groups_with_stock = (
             select(child_group_alias.guid)
             .where(child_group_alias.parent_group_guid == GoodGroup.guid)
             .where(
                 exists(
                     select(1)
-                    .select_from(child_group_alias)
+                    .select_from(Good)
+                    .join(GoodStorage, Good.guid == GoodStorage.good_guid)
                     .where(
-                        exists(
-                            select(1)
-                            .select_from(Good)
-                            .join(GoodStorage, Good.guid == GoodStorage.good_guid)
-                            .join(Price, and_(Good.guid == Price.good_guid, Price.price_type_guid == price_type_guid))
-                            .where(
-                                and_(
-                                    GoodStorage.in_stock > 0,
-                                    Good.good_group_guid == child_group_alias.guid,
-                                )
-                            )
+                        and_(
+                            GoodStorage.in_stock > 0,
+                            Good.good_group_guid == child_group_alias.guid,
                         )
                     )
                 )
@@ -83,7 +73,7 @@ class GoodGroupRepository(BaseDatabaseRepository):
             .exists()
         )
 
-        query = select(GoodGroup).where(or_(goods_in_group_with_stock_and_price, child_groups_with_criteria))
+        query = select(GoodGroup).where(or_(goods_in_group_with_stock, child_groups_with_stock))
 
         result = await self._session.execute(query)
         return result.scalars().all()

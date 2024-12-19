@@ -9,6 +9,6 @@ router = APIRouter(prefix="/good-groups", tags=["Группы товаров"])
 
 @router.get("", status_code=status.HTTP_200_OK, response_model=list[GetTreeGoodGroupSchema])
 async def get_good_groups(
-    good_service: GoodGroupService = Depends(), price_type_guid: str = Query(default=RETAIL_PRICE_TYPE)
+    good_service: GoodGroupService = Depends(),
 ) -> list[GetTreeGoodGroupSchema]:
-    return await good_service.get_available_good_groups(price_type_guid=price_type_guid)
+    return await good_service.get_available_good_groups()

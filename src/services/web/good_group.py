@@ -37,7 +37,7 @@ class GoodGroupService:
         return grouped
 
     @lru_cache(maxsize=256)
-    async def get_available_good_groups(self, price_type_guid: str) -> list[GetTreeGoodGroupSchema]:
-        good_groups = await self._good_group_repository.get_available_good_groups(price_type_guid=price_type_guid)
+    async def get_available_good_groups(self) -> list[GetTreeGoodGroupSchema]:
+        good_groups = await self._good_group_repository.get_available_good_groups()
 
         return self.build_group_tree(good_groups)
