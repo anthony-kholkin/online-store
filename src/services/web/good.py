@@ -18,6 +18,7 @@ from schemas.good import (
     GoodWithPropertiesGetSchema,
     GoodPropertyGetSchema,
     SpecificationWithPriceAndStorageSchema,
+    PackageSchema,
 )
 from schemas.price import PriceGetSchema
 from schemas.specification import SpecificationSchema
@@ -86,6 +87,15 @@ class GoodService(BaseGoodService):
             if getattr(good, name)
         ]
 
+        packages = []
+        for property in property_schemas:
+            if property.name in (PROPERTY_COLUMNS["package"], PROPERTY_COLUMNS["block"], PROPERTY_COLUMNS["box"]):
+                try:
+                    packages.append(PackageSchema(name=property.name, value=int(property.value.split()[0])))
+                except ValueError:
+                    print(f">>> {property.value=}")
+                    continue
+
         specifications = [
             SpecificationWithPriceAndStorageSchema(
                 good_guid=good.guid,
@@ -108,6 +118,7 @@ class GoodService(BaseGoodService):
             description=good.description,
             type=good.type,
             image_key=image_key,
+            package=packages,
             properties=property_schemas,
             specification=specifications,
         )

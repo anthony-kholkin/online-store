@@ -74,6 +74,11 @@ class SpecificationWithPriceAndStorageSchema(BaseModel):
     price: float
 
 
+class PackageSchema(BaseModel):
+    name: str
+    value: int
+
+
 class GoodWithPropertiesGetSchema(BaseOrmSchema):
     guid: str
     name: str
@@ -85,4 +90,5 @@ class GoodWithPropertiesGetSchema(BaseOrmSchema):
     type: GoodTypesEnum = GoodTypesEnum.REGULAR
 
     properties: list[GoodPropertyGetSchema]
+    package: list[PackageSchema]
     specification: list[SpecificationWithPriceAndStorageSchema]
