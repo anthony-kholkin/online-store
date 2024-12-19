@@ -50,7 +50,7 @@ def upgrade() -> None:
     op.create_table(
         "goods",
         sa.Column("name", sa.String(length=255), nullable=False),
-        sa.Column("type", sa.Enum("NEW", "REGULAR", "HIT", name="goodtypesenum"), nullable=False),
+        sa.Column("type", sa.Enum("NEW", "HIT", "REGULAR", name="goodtypesenum"), nullable=False),
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("filling", sa.String(length=255), nullable=True),
         sa.Column("aroma", sa.String(length=255), nullable=True),

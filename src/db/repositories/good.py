@@ -2,6 +2,7 @@ from typing import Any
 
 from sqlalchemy import select, Select, or_, func, exists, case, and_
 
+from core.enum import OrderByEnum
 from core.exceptions import no_price_type_guid_exception
 from db.models import Good, GoodStorage, Price, GoodGroup
 from db.models.favorites_good import favorites_goods
@@ -97,6 +98,7 @@ class GoodRepository(BaseDatabaseRepository):
         self,
         page: int,
         size: int,
+        order_by: OrderByEnum,
         in_stock: bool | None = None,
         name: str | None = None,
         price_type_guid: str | None = None,
@@ -104,7 +106,6 @@ class GoodRepository(BaseDatabaseRepository):
         price_to: float | None = None,
         good_group_guids: list[str] | None = None,
         cart_outlet_guid: str | None = None,
-        order_by: str | None = None,
     ) -> tuple[list[tuple[Any, Any]], int]:
         query = select(
             Good,
@@ -135,9 +136,11 @@ class GoodRepository(BaseDatabaseRepository):
 
         if order_by is not None:
             match order_by:
-                case "name":
+                case OrderByEnum.TYPE:
+                    query = query.order_by(Good.type)
+                case OrderByEnum.NAME:
                     query = query.order_by(Good.name)
-                case "price":
+                case OrderByEnum.PRICE:
                     min_price_subq = (
                         select(Price.good_guid, func.min(Price.value).label("min_price"))
                         .where(Price.price_type_guid == price_type_guid)

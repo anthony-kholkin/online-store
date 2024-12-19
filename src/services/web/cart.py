@@ -81,6 +81,15 @@ class CartService:
 
         data_to_create = CartGoodSchema(cart_outlet_guid=cart.cart_outlet_guid, **data.model_dump())
 
+        cart_good = await self._cart_good_repository.get_by_guid(
+            cart_outlet_guid=cart.cart_outlet_guid,
+            good_guid=data_to_create.good_guid,
+            specification_guid=data_to_create.specification_guid,
+        )
+
+        if cart_good:
+            return cart
+
         await self._cart_good_repository.create(data=data_to_create)
         await self._session.commit()
 
@@ -106,6 +115,10 @@ class CartService:
             good_guid=good_guid,
             specification_guid=specification_guid,
         )
+
+    async def clean_cart(self, cart_outlet_guid: str) -> None:
+        await self._cart_good_repository.clean_cart(cart_outlet_guid=cart_outlet_guid)
+        await self._session.commit()
 
     async def update_good_count_in_cart(
         self, cart_outlet_guid: str, data: AddOrUpdateGoodToCartSchema

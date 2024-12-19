@@ -18,6 +18,12 @@ class CartGoodRepository(BaseDatabaseRepository):
         )
         await self._session.execute(query)
 
+    async def clean_cart(self, cart_outlet_guid: str) -> None:
+        query = delete(cart_goods).where(
+            cart_goods.c.cart_outlet_guid == cart_outlet_guid,
+        )
+        await self._session.execute(query)
+
     async def get_by_guid(self, cart_outlet_guid: str, good_guid: str, specification_guid: str) -> RowMapping | None:
         query = select(cart_goods).where(
             cart_goods.c.cart_outlet_guid == cart_outlet_guid,

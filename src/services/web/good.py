@@ -2,6 +2,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.constants import PROPERTY_COLUMNS
+from core.enum import OrderByEnum
 from core.exceptions import (
     good_not_found_exception,
     no_goods_specs_associations_exception,
@@ -113,16 +114,16 @@ class GoodService(BaseGoodService):
 
     async def get_by_filters(
         self,
+        page: int,
+        size: int,
+        order_by: OrderByEnum,
         price_type_guid: str,
         cart_outlet_guid: str | None,
         price_from: float | None,
         price_to: float | None,
         good_group_guids: list[str] | None,
-        page: int,
-        size: int,
         in_stock: bool | None = None,
         name: str | None = None,
-        order_by: str | None = None,
     ) -> GoodPageSchema:
         pagination_goods, total = await self._good_repository.get_by_filters(
             page=page,

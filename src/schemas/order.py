@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from pydantic import BaseModel
 
@@ -9,6 +9,8 @@ from schemas.base import BaseOrmSchema
 class CreateOrderSchema(BaseOrmSchema):
     guid: str
     cart_outlet_guid: str
+    message: str
+    delivery_date: date
     status: OrderStatusEnum = OrderStatusEnum.OPEN
 
 
@@ -28,6 +30,8 @@ class CreateOrderGoodDbSchema(BaseOrmSchema, CreateOrderGoodSchema):
 
 
 class CreateOrderWithGoodsSchema(BaseOrmSchema):
+    message: str
+    delivery_date: date
     goods: list[CreateOrderGoodSchema]
 
 
@@ -45,6 +49,7 @@ class GetOrderWithGoodsSchema(BaseOrmSchema):
     status: OrderStatusEnum
     total_cost: float
     total_quantity: int
+    delivery_date: date
     created_at: datetime
 
     goods: list[GetOrderGoodSchema]

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, status, Depends, Query, Security
 
 from core.constants import RETAIL_PRICE_TYPE
+from core.enum import OrderByEnum
 from schemas.good import (
     GoodPageSchema,
     GoodWithPropertiesGetSchema,
@@ -25,7 +26,7 @@ async def get_goods_by_filter(
     size: int = Query(ge=1, le=100, default=20),
     in_stock: bool | None = Query(default=None),
     name: str | None = Query(default=None),
-    order_by: str | None = Query(default=None, description="Критерии сортировки: 'name' или 'price'"),
+    order_by: OrderByEnum = Query(default=OrderByEnum.TYPE, description="Критерии сортировки: 'name' или 'price'"),
 ) -> GoodPageSchema:
     return await good_service.get_by_filters(
         cart_outlet_guid=cart_outlet_guid,

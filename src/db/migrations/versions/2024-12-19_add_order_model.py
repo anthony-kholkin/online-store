@@ -1,8 +1,8 @@
-"""Add Order models
+"""Add Order model
 
-Revision ID: 3c7d3671172e
+Revision ID: 3a249763357c
 Revises: 3e776fcbe9dc
-Create Date: 2024-12-09 11:25:02.587800
+Create Date: 2024-12-19 11:47:23.837263
 
 """
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 import db
 
 # revision identifiers, used by Alembic.
-revision: str | None = "3c7d3671172e"
+revision: str | None = "3a249763357c"
 down_revision: str | None = "3e776fcbe9dc"
 branch_labels: str | None = None
 depends_on: str | None = None
@@ -24,6 +24,8 @@ def upgrade() -> None:
         "orders",
         sa.Column("guid", db.models.mixins.GUID(), nullable=False),
         sa.Column("cart_outlet_guid", sa.String(length=255), nullable=False),
+        sa.Column("delivery_date", sa.Date(), nullable=False),
+        sa.Column("message", sa.Text(), nullable=False),
         sa.Column("status", sa.Enum("OPEN", "IN_PROCESS", "DONE", name="orderstatusenum"), nullable=False),
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),

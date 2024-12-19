@@ -19,6 +19,7 @@ from schemas.order import (
     OrderPageSchema,
 )
 from services.base.base import BaseService
+from services.web.cart import CartService
 
 from services.web.good import GoodService
 from storages.s3 import S3Storage
@@ -32,6 +33,7 @@ class OrderService(BaseService):
         order_repository: OrderRepository = Depends(),
         order_good_repository: OrderGoodRepository = Depends(),
         good_service: GoodService = Depends(),
+        cart_service: CartService = Depends(),
     ):
         self._session = session
         self._s3_storage = storage
@@ -39,6 +41,7 @@ class OrderService(BaseService):
         self._order_repository = order_repository
         self._order_good_repository = order_good_repository
         self._good_service = good_service
+        self._cart_service = cart_service
 
     async def create(self, data: CreateOrderWithGoodsSchema, cart_outlet_guid: str) -> Order:
         for good_data in data.goods:
@@ -52,6 +55,8 @@ class OrderService(BaseService):
             data=CreateOrderSchema(
                 guid=datetime.datetime.now().isoformat(),
                 cart_outlet_guid=cart_outlet_guid,
+                message=data.message,
+                delivery_date=data.delivery_date,
             )
         )
 
@@ -59,6 +64,8 @@ class OrderService(BaseService):
             data_list=[CreateOrderGoodDbSchema(order_id=order.id, **good_data.model_dump()) for good_data in data.goods]
         )
         await self._session.commit()
+
+        await self._cart_service.clean_cart(cart_outlet_guid=cart_outlet_guid)
 
         return order
 
@@ -80,12 +87,12 @@ class OrderService(BaseService):
             image_key = good.image_key
 
             if image_key is None:
-                image_key = await self._s3_storage.generate_presigned_url(key="image not found.png")
+                image_key = "image not found.png"
 
             goods.append(
                 GetOrderGoodSchema(
                     name=good.name,
-                    image_key=image_key,
+                    image_key=await self._s3_storage.generate_presigned_url(key=image_key),
                     quantity=good.quantity,
                     price=good.price,
                 )
@@ -96,6 +103,8 @@ class OrderService(BaseService):
             guid=order.guid,
             cart_outlet_guid=order.cart_outlet_guid,
             status=order.status,
+            delivery_date=order.delivery_date,
+            message=order.message,
             total_cost=totals["total_cost"],
             total_quantity=totals["total_quantity"],
             created_at=order.created_at,

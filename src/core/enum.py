@@ -3,8 +3,8 @@ from enum import Enum
 
 class GoodTypesEnum(str, Enum):
     NEW = "new"
-    REGULAR = "regular"
     HIT = "hit"
+    REGULAR = "regular"
 
 
 class PropertyNamesEnum(str, Enum):
@@ -22,3 +22,9 @@ class OrderStatusEnum(str, Enum):
     OPEN = "Открыт"
     IN_PROCESS = "Обрабатывается"
     DONE = "Исполнен"
+
+
+class OrderByEnum(str, Enum):
+    NAME = "name"
+    PRICE = "price"
+    TYPE = "type"

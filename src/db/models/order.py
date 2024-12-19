@@ -1,4 +1,6 @@
-from sqlalchemy import String, Enum
+from datetime import date
+
+from sqlalchemy import String, Enum, Date, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.enum import OrderStatusEnum
@@ -11,6 +13,8 @@ from db.models.order_good import order_goods
 class Order(BaseModel, IDMixin, CreatedAtMixin):
     guid: Mapped[str] = mapped_column(GUID(), nullable=False, unique=True)
     cart_outlet_guid: Mapped[str] = mapped_column(String(255), nullable=False)
+    delivery_date: Mapped[date] = mapped_column(Date, nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
 
     status: Mapped[OrderStatusEnum] = mapped_column(Enum(OrderStatusEnum), nullable=False)
 

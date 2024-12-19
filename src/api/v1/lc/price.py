@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, status, Depends
 
 from db.models import Price
@@ -17,7 +16,9 @@ async def create_or_update_price(
     return await price_service.create_or_update(data=data)
 
 
-@router.post("/batch", status_code=status.HTTP_200_OK, response_model=list[PriceSchema], dependencies=[Depends(authenticate)])
+@router.post(
+    "/batch", status_code=status.HTTP_200_OK, response_model=list[PriceSchema], dependencies=[Depends(authenticate)]
+)
 async def create_or_update_prices_batch(
     data: BatchPriceSchema,
     price_service: PriceService = Depends(),
