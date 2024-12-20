@@ -95,6 +95,9 @@ class GoodService(BaseGoodService):
                 except ValueError:
                     continue
 
+        if not any(package.value == 1 for package in packages):
+            packages.append(PackageSchema(name="Поштучно", value=1))
+
         specifications = [
             SpecificationWithPriceAndStorageSchema(
                 good_guid=good.guid,
