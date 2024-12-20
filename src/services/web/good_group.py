@@ -1,3 +1,4 @@
+import re
 from functools import lru_cache
 from typing import Sequence, Any
 
@@ -15,21 +16,32 @@ class GoodGroupService:
     ):
         self._good_group_repository = good_group_repository
 
+    @staticmethod
+    def __remove_numbering(row: str) -> str:
+        pattern = r"^\d+\.\s*"
+        if re.match(pattern, row):
+            return re.sub(pattern, "", row)
+        else:
+            return row
+
     def build_group_tree(
         self,
         good_groups: Sequence[Row[tuple[Any, ...] | Any]],
         parent_guid: str | None = None,
     ) -> list[GetTreeGoodGroupSchema]:
-        grouped = [
-            GetTreeGoodGroupSchema(
-                guid=group[0],
-                name=group[1],
-                parent_group_guid=group[2],
-                child_groups=[],
-            )
-            for group in good_groups
-            if group[2] == parent_guid
-        ]
+        grouped = []
+        for group in good_groups:
+            if group[2] == parent_guid:
+                name = self.__remove_numbering(group[1])
+
+                grouped.append(
+                    GetTreeGoodGroupSchema(
+                        guid=group[0],
+                        name=name,
+                        parent_group_guid=group[2],
+                        child_groups=[],
+                    )
+                )
 
         for group in grouped:
             group.child_groups = self.build_group_tree(good_groups, parent_guid=group.guid)
