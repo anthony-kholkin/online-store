@@ -93,7 +93,6 @@ class GoodService(BaseGoodService):
                 try:
                     packages.append(PackageSchema(name=property.name, value=int(property.value.split()[0])))
                 except ValueError:
-                    print(f">>> {property.value=}")
                     continue
 
         specifications = [
@@ -158,19 +157,24 @@ class GoodService(BaseGoodService):
             good_schema = GoodCardGetSchema.model_validate(good)
             good_schema.image_key = image_key
             good_schema.is_favorite = is_favorite
-            good_schema.prices = [
-                PriceGetSchema(
-                    good_guid=price.good_guid,
-                    specification=SpecificationSchema(
-                        guid=price.specification_guid,
-                        name=price.specification.name,
-                    ),
-                    price_type=price.price_type,
-                    value=price.value,
-                )
-                for price in good.prices
-                if price.price_type_guid == price_type_guid
-            ]
+
+            good_schema.prices = sorted(
+                [
+                    PriceGetSchema(
+                        good_guid=price.good_guid,
+                        specification=SpecificationSchema(
+                            guid=price.specification_guid,
+                            name=price.specification.name,
+                        ),
+                        price_type=price.price_type,
+                        value=price.value,
+                    )
+                    for price in good.prices
+                    if price.price_type_guid == price_type_guid
+                ],
+                key=lambda x: x.value,  # Сортировка по убыванию значения value
+                reverse=True,  # Указываем, что сортировка должна быть по убыванию
+            )
 
             if good_schema.image_key is None:
                 good_schema.image_key = await self._s3_storage.generate_presigned_url(key="image not found.png")
