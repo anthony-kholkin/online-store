@@ -98,6 +98,8 @@ class GoodService(BaseGoodService):
         if not any(package.value == 1 for package in packages):
             packages.append(PackageSchema(name="Поштучно", value=1))
 
+        packages = sorted(packages, key=lambda x: x.value)
+
         specifications = [
             SpecificationWithPriceAndStorageSchema(
                 good_guid=good.guid,
