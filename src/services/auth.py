@@ -19,7 +19,7 @@ from core.exceptions import (
     outlets_1c_error_exception,
     no_auth_exception,
     expired_token_exception,
-    access_denied_exception,
+    access_denied_exception, no_connection_exception,
 )
 from db.repositories.outlet import OutletRedisRepository
 from schemas.auth import LoginSchema
@@ -29,9 +29,9 @@ from services.web.outlet import OutletService
 
 class AuthService:
     def __init__(
-        self,
-        outlet_repository: OutletRedisRepository = Depends(),
-        outlet_service: OutletService = Depends(),
+            self,
+            outlet_repository: OutletRedisRepository = Depends(),
+            outlet_service: OutletService = Depends(),
     ):
         self._outlet_repository = outlet_repository
         self._outlet_service = outlet_service
@@ -52,35 +52,38 @@ class AuthService:
 
     async def create_token(self, data: LoginSchema) -> Response:
         async with aiohttp.ClientSession() as session:
-            async with session.post(settings().auth_login_1c_url, json=data.model_dump()) as client_response:
-                response_data = await client_response.text()
-                logger.info(f"{data.model_dump_json()=}")
-                logger.info(f"{response_data=}")
+            try:
+                async with session.post(settings().auth_login_1c_url, json=data.model_dump()) as client_response:
+                    response_data = await client_response.text()
+                    logger.info(f"{data.model_dump_json()=}")
+                    logger.info(f"{response_data=}")
 
-                if "403" in response_data:
-                    logger.error(f"{invalid_creds_exception.detail}")
-                    raise invalid_creds_exception
-                elif "[" and "]" in response_data:
-                    token = self._serializer.dumps(data.login, salt=settings().AUTH_SALT)
+                    if "403" in response_data:
+                        logger.error(f"{invalid_creds_exception.detail}")
+                        raise invalid_creds_exception
+                    elif "[" and "]" in response_data:
+                        token = self._serializer.dumps(data.login, salt=settings().AUTH_SALT)
 
-                    try:
-                        data_list = json.loads(response_data)
-                        outlets = [OutletSchema(**item) for item in data_list]
-                    except JSONDecodeError:
-                        raise outlets_json_decode_exception
-                    except ValidationError:
-                        raise outlets_validate_exception
+                        try:
+                            data_list = json.loads(response_data)
+                            outlets = [OutletSchema(**item) for item in data_list]
+                        except JSONDecodeError:
+                            raise outlets_json_decode_exception
+                        except ValidationError:
+                            raise outlets_validate_exception
 
-                    await self._outlet_service.set_list(
-                        token=token, outlets=outlets, expiration_seconds=settings().TOKEN_EXPIRATION_TIME
-                    )
+                        await self._outlet_service.set_list(
+                            token=token, outlets=outlets, expiration_seconds=settings().TOKEN_EXPIRATION_TIME
+                        )
 
-                    json_response = JSONResponse(content="Login successful")
-                    json_response.set_cookie(key="token", value=token, httponly=True)
+                        json_response = JSONResponse(content="Login successful")
+                        json_response.set_cookie(key="token", value=token, httponly=True)
 
-                    return json_response
-                else:
-                    raise outlets_1c_error_exception
+                        return json_response
+                    else:
+                        raise outlets_1c_error_exception
+            except aiohttp.client_exceptions.ClientConnectorError:
+                raise no_connection_exception
 
     async def delete_token(self, token: str | None) -> Response:
         if not token:
@@ -94,15 +97,15 @@ class AuthService:
         return json_response
 
     async def verify_token_outlets(
-        self,
-        token: str | None = Cookie(default=None),
+            self,
+            token: str | None = Cookie(default=None),
     ) -> list[OutletSchema]:
         return await self._load_and_verify_token(token=token)
 
     async def verify_token_cart(
-        self,
-        token: str | None = Cookie(default=None),
-        cart_outlet_guid: str = Path(...),
+            self,
+            token: str | None = Cookie(default=None),
+            cart_outlet_guid: str = Path(...),
     ) -> OutletSchema | list[OutletSchema]:
         outlets = await self._load_and_verify_token(token=token)
 
@@ -115,7 +118,7 @@ class AuthService:
         return outlets
 
     async def verify_token_goods(
-        self, price_type_guid: str = Query(...), token: str | None = Cookie(default=None)
+            self, price_type_guid: str = Query(...), token: str | None = Cookie(default=None)
     ) -> None:
         if price_type_guid == RETAIL_PRICE_TYPE:
             return
@@ -123,37 +126,37 @@ class AuthService:
         outlets = await self._load_and_verify_token(token=token)
 
         if price_type_guid != RETAIL_PRICE_TYPE and not any(
-            outlet.price_type_guid == price_type_guid for outlet in outlets
+                outlet.price_type_guid == price_type_guid for outlet in outlets
         ):
             raise access_denied_exception
 
 
 def get_auth_service(
-    outlet_repository: OutletRedisRepository = Depends(),
-    outlet_service: OutletService = Depends(),
+        outlet_repository: OutletRedisRepository = Depends(),
+        outlet_service: OutletService = Depends(),
 ) -> AuthService:
     return AuthService(outlet_repository=outlet_repository, outlet_service=outlet_service)
 
 
 async def verify_token_outlets(
-    token: str = Cookie(None, include_in_schema=False),
-    auth_service: AuthService = Depends(get_auth_service),
+        token: str = Cookie(None, include_in_schema=False),
+        auth_service: AuthService = Depends(get_auth_service),
 ) -> list[OutletSchema] | OutletSchema | None:
     return await auth_service.verify_token_outlets(token=token)
 
 
 async def verify_token_cart(
-    token: str = Cookie(None, include_in_schema=False),
-    auth_service: AuthService = Depends(get_auth_service),
-    cart_outlet_guid: str = Path(...),
+        token: str = Cookie(None, include_in_schema=False),
+        auth_service: AuthService = Depends(get_auth_service),
+        cart_outlet_guid: str = Path(...),
 ) -> list[OutletSchema] | OutletSchema | None:
     return await auth_service.verify_token_cart(token=token, cart_outlet_guid=cart_outlet_guid)
 
 
 async def verify_token_goods(
-    auth_service: AuthService = Depends(get_auth_service),
-    price_type_guid: str = Query(default=RETAIL_PRICE_TYPE),
-    token: str | None = Cookie(default=None, include_in_schema=False),
+        auth_service: AuthService = Depends(get_auth_service),
+        price_type_guid: str = Query(default=RETAIL_PRICE_TYPE),
+        token: str | None = Cookie(default=None, include_in_schema=False),
 ) -> None:
     return await auth_service.verify_token_goods(price_type_guid=price_type_guid, token=token)
 

@@ -56,6 +56,11 @@ contact_me_form_exception = HTTPException(
     detail="Не удалось отправить форму обратной связи в 1С.",
 )
 
+no_connection_exception = HTTPException(
+    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    detail="Не удалось подключиться к 1С. Свяжитесь с администратором.",
+)
+
 invalid_creds_exception = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
     detail="Неверный логин или пароль.",
